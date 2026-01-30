@@ -277,6 +277,12 @@
             transition: 0.2s;
         }
 
+        .btn-execute:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
         /* --- 컴포넌트: 모달 --- */
         .modal-overlay {
             position: fixed;
@@ -449,6 +455,7 @@
         <div id="actionBar" class="action-bar">
             <span style="font-size: 13px;"><span id="count">0</span>개 파일 선택됨</span>
             <div style="display: flex; gap: 8px;">
+                <button id="openBtn" class="btn-execute" style="background: #00b894;" onclick="openSelectedFiles()">열기</button>
                 <button class="btn-execute" style="background: #ff7675;" onclick="deleteFiles()">삭제</button>
                 <button id="executeBtn" class="btn-execute" onclick="handleExecution()">암호화 실행</button>
             </div>
@@ -569,6 +576,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
+const { exec } = require('child_process');
 
 // 암호화 키 설정
 const ALGORITHM = 'aes-256-cbc'; 
@@ -873,7 +881,7 @@ function loadRealFiles(targetPath) {
                 if (isDir) {
                     navigateTo(fullPath, fileName);
                 } else {
-                    alert(`${fileName}`);
+                    openFile(fullPath);
                 }
             };
 
@@ -886,7 +894,75 @@ function loadRealFiles(targetPath) {
     });
 }
 
-/* --- 4. 기능: 암호화/복호화 실행 --- */
+/* --- 4. 기능: 파일 열기 --- */
+function openFile(filePath) {
+    if (!fs.existsSync(filePath)) {
+        alert('파일을 찾을 수 없습니다.');
+        return;
+    }
+
+    // 암호화된 파일은 열지 않음
+    if (filePath.toLowerCase().endsWith('.dongin')) {
+        alert('암호화된 파일은 먼저 복호화해주세요.');
+        return;
+    }
+
+    // OS별로 기본 프로그램으로 파일 열기
+    const platform = os.platform();
+    let command;
+
+    if (platform === 'win32') {
+        // Windows: start 명령어 사용
+        command = `start "" "${filePath}"`;
+    } else if (platform === 'darwin') {
+        // macOS: open 명령어 사용
+        command = `open "${filePath}"`;
+    } else {
+        // Linux: xdg-open 명령어 사용
+        command = `xdg-open "${filePath}"`;
+    }
+
+    exec(command, (error) => {
+        if (error) {
+            console.error('파일 열기 오류:', error);
+            alert('파일을 열 수 없습니다.');
+        }
+    });
+}
+
+// 선택된 파일/폴더 열기
+function openSelectedFiles() {
+    const selectedFiles = document.querySelectorAll('.file-card.selected');
+    if (selectedFiles.length === 0) {
+        alert('파일을 선택해주세요.');
+        return;
+    }
+
+    // 1개만 선택했을 때만 실행 (버튼 비활성화로 제어되지만 추가 안전장치)
+    if (selectedFiles.length > 1) {
+        alert('한 번에 하나의 항목만 열 수 있습니다.');
+        return;
+    }
+
+    const card = selectedFiles[0];
+    const fileName = card.querySelector('div:last-child').innerText;
+    const fullPath = path.join(currentPath, fileName);
+
+    try {
+        if (fs.statSync(fullPath).isDirectory()) {
+            // 폴더인 경우: 폴더 안으로 진입
+            navigateTo(fullPath, fileName);
+        } else {
+            // 파일인 경우: 기본 프로그램으로 열기
+            openFile(fullPath);
+        }
+    } catch (err) {
+        console.error('열기 오류:', err);
+        alert('항목을 열 수 없습니다.');
+    }
+}
+
+/* --- 5. 기능: 암호화/복호화 실행 --- */
 function handleExecution() {
     const selectedFiles = document.querySelectorAll('.file-card.selected');
     if (selectedFiles.length === 0) return alert('파일을 선택해주세요.');
@@ -957,8 +1033,9 @@ function updateBar() {
     const count = selectedFiles.length;
     const actionBar = document.getElementById('actionBar');
     const executeBtn = document.getElementById('executeBtn');
+    const openBtn = document.getElementById('openBtn');
 
-    if (actionBar && executeBtn) {
+    if (actionBar && executeBtn && openBtn) {
         if (count > 0) {
             actionBar.classList.add('show');
             document.getElementById('count').innerText = count;
@@ -970,6 +1047,13 @@ function updateBar() {
 
             // 버튼 텍스트 변경
             executeBtn.innerText = hasEncrypted ? "복호화 실행" : "암호화 실행";
+
+            // "열기" 버튼: 암호화되지 않은 파일 1개만 선택했을 때만 활성화
+            if (hasEncrypted || count > 1) {
+                openBtn.disabled = true;
+            } else {
+                openBtn.disabled = false;
+            }
         } else {
             actionBar.classList.remove('show');
         }
