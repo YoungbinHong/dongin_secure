@@ -557,6 +557,24 @@
         }
 
         function toggleSelect(element) {
+            // 1. 현재 클릭한 파일이 암호화된 파일(.dongin)인지 확인
+            const currentName = element.querySelector('div:last-child').innerText.toLowerCase();
+            const isTargetEncrypted = currentName.endsWith('.dongin');
+
+            // 2. 이미 선택된 모든 파일들을 검사하여 충돌되는 파일 해제
+            const selectedFiles = document.querySelectorAll('.file-card.selected');
+
+            selectedFiles.forEach(file => {
+                const fileName = file.querySelector('div:last-child').innerText.toLowerCase();
+                const isFileEncrypted = fileName.endsWith('.dongin');
+
+                // 클릭한 것과 성격이 다르면(암호화 vs 일반) 기존 선택을 해제
+                if (isTargetEncrypted !== isFileEncrypted) {
+                    file.classList.remove('selected');
+                }
+            });
+
+            // 3. 현재 클릭한 파일의 선택 상태 토글
             element.classList.toggle('selected');
             updateBar();
         }
