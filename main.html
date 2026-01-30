@@ -573,13 +573,14 @@
     <script>
         /* --- 필수 모듈 가져오기 --- */
 const fs = require('fs');
+const fsPromises = require('fs').promises;
 const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const { exec } = require('child_process');
 
 // 암호화 키 설정
-const ALGORITHM = 'aes-256-cbc'; 
+const ALGORITHM = 'aes-256-cbc';
 const SECRET_KEY = crypto.scryptSync('dongin-password', 'salt', 32);
 const IV = Buffer.alloc(16, 0);
 
@@ -588,6 +589,9 @@ let currentPath = path.join(os.homedir(), 'Desktop');
 
 // 경로 히스토리 관리
 let pathHistory = [];
+
+// 작업 취소 플래그
+let isCanceled = false;
 
 /* --- 경로 관리 함수들 --- */
 // 경로 변경 (히스토리에 추가)
@@ -962,49 +966,132 @@ function openSelectedFiles() {
     }
 }
 
-/* --- 5. 기능: 암호화/복호화 실행 --- */
-function handleExecution() {
+/* --- 5. 프로그레스바 제어 --- */
+function showProgress(title, status) {
+    const modal = document.getElementById('modalOverlay');
+    const progressContent = document.getElementById('progressContent');
+
+    // 다른 모달 숨기기
+    document.querySelectorAll('.alert-modal, .settings-modal').forEach(el => el.style.display = 'none');
+
+    modal.style.display = 'flex';
+    progressContent.style.display = 'block';
+
+    document.getElementById('progressTitle').innerText = title;
+    document.getElementById('progressStatus').innerHTML = `${status} <span id="progressPercent">0</span>%`;
+    updateProgress(0);
+}
+
+function updateProgress(percent) {
+    const bar = document.getElementById('progressBar');
+    const percentSpan = document.getElementById('progressPercent');
+
+    if (bar && percentSpan) {
+        bar.style.width = percent + '%';
+        percentSpan.innerText = Math.floor(percent);
+    }
+}
+
+function hideProgress() {
+    document.getElementById('modalOverlay').style.display = 'none';
+    document.getElementById('progressContent').style.display = 'none';
+}
+
+function cancelTask() {
+    isCanceled = true;
+    hideProgress();
+    setTimeout(() => {
+        alert('작업이 취소되었습니다.');
+        loadRealFiles(currentPath);
+        updateBar();
+    }, 100);
+}
+
+/* --- 6. 기능: 암호화/복호화 실행 (비동기) --- */
+async function handleExecution() {
     const selectedFiles = document.querySelectorAll('.file-card.selected');
     if (selectedFiles.length === 0) return alert('파일을 선택해주세요.');
 
-    selectedFiles.forEach(card => {
+    // 파일 목록 추출
+    const fileList = Array.from(selectedFiles).map(card => {
         const fileName = card.querySelector('div:last-child').innerText;
-        const fullPath = path.join(currentPath, fileName);
-        
+        return {
+            name: fileName,
+            path: path.join(currentPath, fileName)
+        };
+    });
+
+    const totalFiles = fileList.length;
+    const isEncrypting = !fileList[0].name.endsWith('.dongin');
+
+    // 프로그레스바 표시
+    isCanceled = false;
+    showProgress(
+        isEncrypting ? '파일 암호화 중' : '파일 복호화 중',
+        `${totalFiles}개 파일 처리 중...`
+    );
+
+    let processedCount = 0;
+
+    // 파일을 하나씩 순차 처리
+    for (const file of fileList) {
+        if (isCanceled) {
+            console.log('작업이 취소되었습니다.');
+            break;
+        }
+
         try {
-            if (fileName.endsWith('.dongin')) {
+            if (file.name.endsWith('.dongin')) {
                 // 복호화
-                const encryptedData = fs.readFileSync(fullPath);
+                const encryptedData = await fsPromises.readFile(file.path);
                 const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY, IV);
                 let decrypted = decipher.update(encryptedData);
                 decrypted = Buffer.concat([decrypted, decipher.final()]);
-                
-                const originalName = fileName.replace('.dongin', '');
-                fs.writeFileSync(path.join(currentPath, originalName), decrypted);
-                fs.unlinkSync(fullPath);
+
+                const originalName = file.name.replace('.dongin', '');
+                const outputPath = path.join(currentPath, originalName);
+                await fsPromises.writeFile(outputPath, decrypted);
+                await fsPromises.unlink(file.path);
             } else {
                 // 암호화
-                const data = fs.readFileSync(fullPath);
+                const data = await fsPromises.readFile(file.path);
                 const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, IV);
                 let encrypted = cipher.update(data);
                 encrypted = Buffer.concat([encrypted, cipher.final()]);
-                
-                fs.writeFileSync(fullPath + '.dongin', encrypted);
-                fs.unlinkSync(fullPath);
-            }
-        } catch (err) {
-            console.error(err);
-            alert(`오류: ${fileName} 처리 실패`);
-        }
-    });
 
-    setTimeout(() => {
-        loadRealFiles(currentPath);
-        updateBar();
-    }, 500);
+                await fsPromises.writeFile(file.path + '.dongin', encrypted);
+                await fsPromises.unlink(file.path);
+            }
+
+            processedCount++;
+            const progress = (processedCount / totalFiles) * 100;
+            updateProgress(progress);
+
+            // UI 업데이트를 위한 짧은 대기
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+        } catch (err) {
+            console.error(`오류: ${file.name} 처리 실패`, err);
+            hideProgress();
+            alert(`오류: ${file.name} 처리 실패\n${err.message}`);
+            break;
+        }
+    }
+
+    // 완료 처리
+    if (!isCanceled) {
+        updateProgress(100);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        hideProgress();
+        alert(`완료: ${processedCount}개 파일이 처리되었습니다.`);
+    }
+
+    // 파일 목록 새로고침
+    loadRealFiles(currentPath);
+    updateBar();
 }
 
-/* --- 5. UI 보조 함수들 --- */
+/* --- 7. UI 보조 함수들 --- */
 function toggleSelect(element) {
     // 1. 현재 클릭한 파일이 암호화된 파일(.dongin)인지 확인
     const currentName = element.querySelector('div:last-child').innerText.toLowerCase();
