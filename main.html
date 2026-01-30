@@ -139,17 +139,77 @@
 
         header {
             padding: 25px 40px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+
+        .back-btn:hover:not(.disabled) {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .back-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .back-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .header-content {
+            flex: 1;
+            min-width: 0;
         }
 
         .path-bar {
             font-size: 12px;
             color: #b2bec3;
             margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .path-item {
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .path-item:hover {
+            color: var(--accent);
+            background: rgba(162, 155, 254, 0.1);
+        }
+
+        .path-separator {
+            color: #dfe6e9;
+            user-select: none;
         }
 
         .file-zone {
             flex: 1;
-            padding: 0 40px 100px 40px;
+            padding: 10px 40px 100px 40px;
             overflow-y: auto;
         }
 
@@ -369,8 +429,15 @@
 
     <div class="main-container">
         <header>
-            <div class="path-bar">내 PC > 바탕 화면</div>
-            <h1 style="font-size: 20px; margin: 0;">바탕 화면</h1>
+            <div class="back-btn disabled" id="backBtn" onclick="goBack()" title="뒤로가기">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <div class="header-content">
+                <div class="path-bar" id="pathBar">내 PC > 바탕 화면</div>
+                <h1 style="font-size: 20px; margin: 0;" id="headerTitle">바탕 화면</h1>
+            </div>
         </header>
 
         <div class="file-zone">
@@ -511,11 +578,166 @@ const IV = Buffer.alloc(16, 0);
 // 기본 경로: 바탕화면
 let currentPath = path.join(os.homedir(), 'Desktop');
 
-/* --- 1. 프로그램 시작 시 실행되는 곳 (여기가 문제였습니다) --- */
+// 경로 히스토리 관리
+let pathHistory = [];
+
+/* --- 경로 관리 함수들 --- */
+// 경로 변경 (히스토리에 추가)
+function navigateTo(newPath, displayName = null) {
+    if (currentPath !== newPath) {
+        pathHistory.push(currentPath);
+    }
+    currentPath = newPath;
+
+    // 뒤로가기 버튼 상태 업데이트
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        if (pathHistory.length > 0) {
+            backBtn.classList.remove('disabled');
+        } else {
+            backBtn.classList.add('disabled');
+        }
+    }
+
+    updateBreadcrumb(displayName);
+    loadRealFiles(currentPath);
+}
+
+// 뒤로가기
+function goBack() {
+    if (pathHistory.length === 0) return;
+
+    const previousPath = pathHistory.pop();
+    currentPath = previousPath;
+
+    // 뒤로가기 버튼 상태 업데이트
+    const backBtn = document.getElementById('backBtn');
+    if (pathHistory.length === 0) {
+        backBtn.classList.add('disabled');
+    }
+
+    updateBreadcrumb();
+    loadRealFiles(currentPath);
+}
+
+// Breadcrumb 업데이트
+function updateBreadcrumb(displayName = null) {
+    const pathBar = document.getElementById('pathBar');
+    const headerTitle = document.getElementById('headerTitle');
+    if (!pathBar || !headerTitle) return;
+
+    const home = os.homedir();
+    let pathParts = [];
+    let currentDisplayPath = currentPath;
+
+    // 특수 경로 처리
+    if (currentPath.startsWith(home)) {
+        const relativePath = currentPath.substring(home.length).replace(/^[\\\/]/, '');
+
+        if (relativePath === 'Desktop') {
+            pathParts = [{ name: '내 PC', path: home }, { name: '바탕 화면', path: currentPath }];
+            headerTitle.innerText = '바탕 화면';
+        } else if (relativePath === 'Downloads') {
+            pathParts = [{ name: '내 PC', path: home }, { name: '다운로드', path: currentPath }];
+            headerTitle.innerText = '다운로드';
+        } else if (relativePath === 'Documents') {
+            pathParts = [{ name: '내 PC', path: home }, { name: '문서', path: currentPath }];
+            headerTitle.innerText = '문서';
+        } else if (relativePath === 'Pictures') {
+            pathParts = [{ name: '내 PC', path: home }, { name: '사진', path: currentPath }];
+            headerTitle.innerText = '사진';
+        } else if (relativePath === 'Videos') {
+            pathParts = [{ name: '내 PC', path: home }, { name: '동영상', path: currentPath }];
+            headerTitle.innerText = '동영상';
+        } else if (relativePath === 'Music') {
+            pathParts = [{ name: '내 PC', path: home }, { name: '음악', path: currentPath }];
+            headerTitle.innerText = '음악';
+        } else if (relativePath.startsWith('OneDrive')) {
+            const oneDriveName = relativePath.split(path.sep)[0];
+            const subPath = relativePath.substring(oneDriveName.length).replace(/^[\\\/]/, '');
+
+            if (subPath) {
+                // OneDrive 하위 폴더
+                const subParts = subPath.split(path.sep);
+                pathParts = [{ name: '내 PC', path: home }, { name: oneDriveName, path: path.join(home, oneDriveName) }];
+
+                let accumulatedPath = path.join(home, oneDriveName);
+                subParts.forEach(part => {
+                    accumulatedPath = path.join(accumulatedPath, part);
+                    pathParts.push({ name: part, path: accumulatedPath });
+                });
+
+                headerTitle.innerText = subParts[subParts.length - 1];
+            } else {
+                // OneDrive 루트
+                pathParts = [{ name: '내 PC', path: home }, { name: oneDriveName, path: currentPath }];
+                headerTitle.innerText = oneDriveName;
+            }
+        } else {
+            // 기타 홈 하위 경로
+            const parts = relativePath.split(path.sep).filter(p => p);
+            pathParts = [{ name: '내 PC', path: home }];
+
+            let accumulatedPath = home;
+            parts.forEach(part => {
+                accumulatedPath = path.join(accumulatedPath, part);
+                pathParts.push({ name: part, path: accumulatedPath });
+            });
+
+            headerTitle.innerText = parts[parts.length - 1] || '내 PC';
+        }
+    } else if (currentPath.match(/^[A-Z]:\\/i)) {
+        // C:\ 같은 드라이브
+        const parts = currentPath.split(path.sep).filter(p => p);
+        const driveLetter = parts[0];
+
+        if (parts.length === 1) {
+            pathParts = [{ name: '내 PC', path: home }, { name: `로컬 디스크 (${driveLetter})`, path: currentPath }];
+            headerTitle.innerText = `로컬 디스크 (${driveLetter})`;
+        } else {
+            pathParts = [{ name: '내 PC', path: home }, { name: `로컬 디스크 (${driveLetter})`, path: driveLetter + path.sep }];
+
+            let accumulatedPath = driveLetter + path.sep;
+            for (let i = 1; i < parts.length; i++) {
+                accumulatedPath = path.join(accumulatedPath, parts[i]);
+                pathParts.push({ name: parts[i], path: accumulatedPath });
+            }
+
+            headerTitle.innerText = parts[parts.length - 1];
+        }
+    } else {
+        pathParts = [{ name: currentPath, path: currentPath }];
+        headerTitle.innerText = displayName || path.basename(currentPath);
+    }
+
+    // Breadcrumb HTML 생성
+    pathBar.innerHTML = '';
+    pathParts.forEach((part, index) => {
+        const span = document.createElement('span');
+        span.className = 'path-item';
+        span.innerText = part.name;
+        span.onclick = () => {
+            if (part.path !== currentPath) {
+                navigateTo(part.path, part.name);
+            }
+        };
+        pathBar.appendChild(span);
+
+        if (index < pathParts.length - 1) {
+            const separator = document.createElement('span');
+            separator.className = 'path-separator';
+            separator.innerText = '>';
+            pathBar.appendChild(separator);
+        }
+    });
+}
+
+/* --- 1. 프로그램 시작 시 실행되는 곳 --- */
 document.addEventListener('DOMContentLoaded', () => {
     console.log("프로그램 시작됨");
-    initSidebar();           // 1. 사이드바 그려라! (이게 빠져있었습니다)
-    loadRealFiles(currentPath); // 2. 파일 목록 가져와라!
+    initSidebar();              // 1. 사이드바 그려라!
+    updateBreadcrumb();         // 2. 초기 경로 표시
+    loadRealFiles(currentPath); // 3. 파일 목록 가져와라!
 });
 
 /* --- 2. 사이드바 자동 생성 함수 (디자인 복구) --- */
@@ -595,17 +817,15 @@ function initSidebar() {
                 if (item.name === '바탕 화면') itemDiv.classList.add('active');
 
                 itemDiv.innerHTML = `<i>${item.icon}</i>${item.name}`;
-                
+
                 // 클릭 이벤트
                 itemDiv.onclick = () => {
                     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                     itemDiv.classList.add('active');
-                    
-                    document.querySelector('.path-bar').innerText = `내 PC > ${item.name}`;
-                    document.querySelector('header h1').innerText = item.name;
-                    
-                    currentPath = item.path;
-                    loadRealFiles(currentPath);
+
+                    // 히스토리 초기화 (사이드바에서 새로운 루트로 이동)
+                    pathHistory = [];
+                    navigateTo(item.path, item.name);
                 };
 
                 sectionDiv.appendChild(itemDiv);
@@ -649,11 +869,9 @@ function loadRealFiles(targetPath) {
             div.className = 'file-card';
             
             div.onclick = function() { toggleSelect(this); };
-            div.ondblclick = function() { 
+            div.ondblclick = function() {
                 if (isDir) {
-                    currentPath = fullPath;
-                    loadRealFiles(currentPath);
-                    document.querySelector('.path-bar').innerText += ` > ${fileName}`;
+                    navigateTo(fullPath, fileName);
                 } else {
                     alert(`${fileName}`);
                 }
