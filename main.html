@@ -13,6 +13,152 @@
             --glass: rgba(255, 255, 255, 0.85);
         }
 
+        body.dark-theme {
+            --bg: #0f0f0f;
+            --sidebar-bg: rgba(25, 25, 25, 0.7);
+            --accent: #b9a8ff;
+            --text: #e8e8e8;
+            --glass: rgba(25, 25, 25, 0.9);
+        }
+
+        /* 어두운 테마 추가 스타일 */
+        body.dark-theme input,
+        body.dark-theme select {
+            background: rgba(50, 50, 50, 0.6) !important;
+            color: #e8e8e8 !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        body.dark-theme input::placeholder {
+            color: #888888;
+        }
+
+        body.dark-theme .nav-item {
+            color: #b0b0b0;
+        }
+
+        body.dark-theme .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-theme .file-card {
+            background: rgba(40, 40, 40, 0.9);
+            color: #e8e8e8;
+        }
+
+        body.dark-theme .action-bar {
+            background: rgba(30, 30, 30, 0.95);
+        }
+
+        body.dark-theme .footer-icon {
+            color: #b0b0b0;
+        }
+
+        body.dark-theme .footer-icon:hover {
+            color: #b9a8ff;
+        }
+
+        body.dark-theme .back-btn {
+            background: rgba(50, 50, 50, 0.6);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-theme .path-bar {
+            color: #888888;
+        }
+
+        body.dark-theme .path-item:hover {
+            color: #b9a8ff;
+        }
+
+        body.dark-theme .settings-sidebar {
+            background: rgba(40, 40, 40, 0.5);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-theme .settings-menu-item {
+            color: #b0b0b0;
+        }
+
+        body.dark-theme .settings-menu-item.active {
+            background: rgba(60, 60, 60, 0.8);
+            color: #b9a8ff;
+        }
+
+        body.dark-theme .settings-menu-item:hover {
+            background: rgba(50, 50, 50, 0.5);
+        }
+
+        body.dark-theme .close-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: #b0b0b0;
+        }
+
+        /* 어두운 테마에서 텍스트 색상 조정 */
+        body.dark-theme .path-bar {
+            color: #888888;
+        }
+
+        body.dark-theme .path-separator {
+            color: #555555;
+        }
+
+        body.dark-theme .path-item {
+            color: #b0b0b0;
+        }
+
+        body.dark-theme .settings-title {
+            color: #e8e8e8;
+        }
+
+        body.dark-theme .setting-label {
+            color: #e8e8e8 !important;
+        }
+
+        body.dark-theme .setting-group {
+            color: #b0b0b0;
+        }
+
+        body.dark-theme [style*="color: #636e72"],
+        body.dark-theme [style*="color:#636e72"] {
+            color: #b0b0b0 !important;
+        }
+
+        body.dark-theme [style*="color: #2d3436"],
+        body.dark-theme [style*="color:#2d3436"] {
+            color: #e8e8e8 !important;
+        }
+
+        body.dark-theme [style*="color: #b2bec3"],
+        body.dark-theme [style*="color:#b2bec3"] {
+            color: #888888 !important;
+        }
+
+        body.dark-theme [style*="color: #dfe6e9"],
+        body.dark-theme [style*="color:#dfe6e9"] {
+            color: #555555 !important;
+        }
+
+        body.dark-theme [style*="background: rgba(0, 0, 0, 0.03)"],
+        body.dark-theme [style*="background: rgba(0,0,0,0.03)"] {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        body.dark-theme [style*="background: rgba(0, 0, 0, 0.05)"],
+        body.dark-theme [style*="background: rgba(0,0,0,0.05)"] {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* 어두운 테마에서 nav-item 색상 조정 */
+        body.dark-theme .nav-item.active {
+            color: #fff;
+        }
+
+        /* 헤더 제목 색상 */
+        #headerTitle {
+            color: var(--text) !important;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -404,6 +550,51 @@
                 opacity: 1;
             }
         }
+
+        /* --- 서버 연결 상태 --- */
+        .server-status {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background: var(--glass);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: 0.2s;
+        }
+
+        .server-status:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .server-tooltip {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: var(--glass);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            display: none;
+            z-index: 101;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: var(--text);
+        }
+
+        body.dark-theme .server-status {
+            background: rgba(25, 25, 25, 0.9);
+        }
     </style>
 </head>
 
@@ -516,6 +707,14 @@
             </div>
         </div>
 
+        <div id="completeContent" class="alert-modal" style="display: none;">
+            <div style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--text);">완료</div>
+            <div id="completeMsg" style="font-size: 14px; color: #636e72; line-height: 1.6; margin-bottom: 25px;"></div>
+            <button
+                style="background: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 14px; width: 100%; cursor: pointer; font-weight: 600;"
+                onclick="closeModal()">확인</button>
+        </div>
+
         <div id="settingsContent" class="settings-modal" style="display: none;">
             <div class="settings-sidebar">
                 <div class="settings-menu-item active" onclick="switchTab(event, 'general')">일반</div>
@@ -530,9 +729,9 @@
                     <div class="settings-title">일반</div>
                     <div class="setting-group">
                         <label class="setting-label">테마 설정</label>
-                        <select style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
-                            <option>밝은 테마 (기본)</option>
-                            <option>어두운 테마</option>
+                        <select id="themeSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; cursor: pointer;" onchange="applyTheme(this.value)">
+                            <option value="light">밝은 테마 (기본)</option>
+                            <option value="dark">어두운 테마</option>
                         </select>
                     </div>
                     <div class="setting-group">
@@ -554,20 +753,45 @@
                 </div>
                 <div id="account" class="settings-tab">
                     <div class="settings-title">사용자 계정</div>
-                    <p style="font-size: 14px; color:#636e72;">로그인 정보 및 라이선스 관리</p>
+                    <div class="setting-group">
+                        <label class="setting-label">로그인한 계정</label>
+                        <div style="font-size: 14px; color: #636e72; padding: 12px; background: rgba(0, 0, 0, 0.03); border-radius: 8px;" id="loginAccount">user</div>
+                    </div>
                 </div>
                 <div id="notice" class="settings-tab">
                     <div class="settings-title">알림</div>
-                    <p style="font-size: 14px; color:#636e72;">푸시 알림 및 소리 설정</p>
+                    <div class="setting-group">
+                        <label class="setting-label">알림 설정</label>
+                        <div style="margin-top: 10px;">
+                            <div style="margin-bottom: 12px;">
+                                <input type="checkbox" id="notice1" checked> <label for="notice1" style="font-size: 13px; cursor: pointer;">파일 암호화/복호화 완료 알림</label>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <input type="checkbox" id="notice2" checked> <label for="notice2" style="font-size: 13px; cursor: pointer;">보안 관련 알림</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="info" class="settings-tab">
                     <div class="settings-title">프로그램 정보</div>
-                    <p style="font-size: 14px; color:#636e72;">DONGIN SECURE v1.0.4</p>
-                    <p style="font-size: 12px; color:#b2bec3;">최신 버전입니다.</p>
+                    <div class="setting-group">
+                        <label class="setting-label">프로그램 이름</label>
+                        <div style="font-size: 14px; color: #636e72;">DONGIN SECURE v1.0.0</div>
+                    </div>
+                    <div class="setting-group">
+                        <label class="setting-label">버전 상태</label>
+                        <div style="font-size: 13px; color: #2ecc71;">✓ 최신 버전입니다.</div>
+                    </div>
                 </div>
             </div>
         </div>
 
+    </div>
+
+    <!-- 서버 연결 상태 표시 -->
+    <div id="serverStatusContainer" class="server-status" onmouseover="showServerTooltip()" onmouseout="hideServerTooltip()" title="서버 상태">
+        <span id="serverStatus">📶</span>
+        <div id="serverTooltip" class="server-tooltip"></div>
     </div>
 
     <script>
@@ -592,6 +816,9 @@ let pathHistory = [];
 
 // 작업 취소 플래그
 let isCanceled = false;
+
+// 완료 모달 타임아웃 ID
+let completeTimeoutId = null;
 
 /* --- 경로 관리 함수들 --- */
 // 경로 변경 (히스토리에 추가)
@@ -744,9 +971,31 @@ function updateBreadcrumb(displayName = null) {
     });
 }
 
+/* --- 테마 관리 함수 --- */
+function applyTheme(theme) {
+    if (theme === 'dark') {
+        document.body.classList.add('dark-theme');
+        localStorage.setItem('app-theme', 'dark');
+    } else {
+        document.body.classList.remove('dark-theme');
+        localStorage.setItem('app-theme', 'light');
+    }
+}
+
+function loadSavedTheme() {
+    const savedTheme = localStorage.getItem('app-theme') || 'light';
+    const themeSelect = document.getElementById('themeSelect');
+
+    applyTheme(savedTheme);
+    if (themeSelect) {
+        themeSelect.value = savedTheme;
+    }
+}
+
 /* --- 1. 프로그램 시작 시 실행되는 곳 --- */
 document.addEventListener('DOMContentLoaded', () => {
     console.log("프로그램 시작됨");
+    loadSavedTheme();           // 0. 저장된 테마 불러오기
     initSidebar();              // 1. 사이드바 그려라!
     updateBreadcrumb();         // 2. 초기 경로 표시
     loadRealFiles(currentPath); // 3. 파일 목록 가져와라!
@@ -835,8 +1084,6 @@ function initSidebar() {
                     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                     itemDiv.classList.add('active');
 
-                    // 히스토리 초기화 (사이드바에서 새로운 루트로 이동)
-                    pathHistory = [];
                     navigateTo(item.path, item.name);
                 };
 
@@ -865,7 +1112,13 @@ function loadRealFiles(targetPath) {
         grid.innerHTML = ''; 
 
         files.forEach(fileName => {
-            if (fileName.startsWith('.') || fileName === 'desktop.ini' || fileName === 'Thumbs.db' || fileName.endsWith('.lnk')) return;
+            // 숨김파일, 시스템파일, 임시파일 제외
+            if (fileName.startsWith('.') ||           // 숨김 파일 (예: .git, .DS_Store)
+                fileName.startsWith('$') ||           // 시스템 파일 (예: $RECYCLE.BIN)
+                fileName.startsWith('~$') ||          // 오피스 임시파일 (예: ~$file.xlsx)
+                fileName === 'desktop.ini' ||         // Windows 바탕화면 설정
+                fileName === 'Thumbs.db' ||           // Windows 썸네일 캐시
+                fileName.endsWith('.lnk')) return;    // 바로가기 파일
 
             const fullPath = path.join(targetPath, fileName);
             let isDir = false;
@@ -1083,7 +1336,7 @@ async function handleExecution() {
         updateProgress(100);
         await new Promise(resolve => setTimeout(resolve, 500));
         hideProgress();
-        alert(`완료: ${processedCount}개 파일이 처리되었습니다.`);
+        showCompletionModal(`${processedCount}개 파일이 처리되었습니다.`);
     }
 
     // 파일 목록 새로고침
@@ -1149,9 +1402,130 @@ function updateBar() {
 
 // 에러 방지용 빈 함수들
 function deleteFiles() { alert("삭제 기능은 안전을 위해 비활성화됨"); }
-function openSettings() { alert("설정 메뉴"); }
-function logout() { alert("로그아웃"); }
-function closeModal() { document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none'); }
+function openSettings() {
+    const modal = document.getElementById('modalOverlay');
+    const settingsContent = document.getElementById('settingsContent');
+
+    // 다른 모달 숨기기
+    document.querySelectorAll('.alert-modal').forEach(el => el.style.display = 'none');
+
+    // 설정 모달 보이기
+    modal.style.display = 'flex';
+    settingsContent.style.display = 'flex';
+}
+
+// 설정 탭 전환
+function switchTab(event, tabName) {
+    // 모든 탭 숨기기
+    document.querySelectorAll('.settings-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // 모든 메뉴 항목 비활성화
+    document.querySelectorAll('.settings-menu-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // 선택한 탭 표시
+    const selectedTab = document.getElementById(tabName);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+
+    // 선택한 메뉴 항목 활성화
+    event.currentTarget.classList.add('active');
+}
+function logout() {
+    const modal = document.getElementById('modalOverlay');
+    const logoutContent = document.getElementById('logoutContent');
+
+    // 다른 모달 숨기기
+    document.querySelectorAll('.alert-modal, .settings-modal').forEach(el => el.style.display = 'none');
+
+    // 로그아웃 모달 보이기
+    modal.style.display = 'flex';
+    logoutContent.style.display = 'block';
+}
+
+// 파일 처리 완료 모달 표시
+function showCompletionModal(message) {
+    // 타임아웃 취소 (이전이 있으면)
+    if (completeTimeoutId) {
+        clearTimeout(completeTimeoutId);
+        completeTimeoutId = null;
+    }
+
+    const modal = document.getElementById('modalOverlay');
+    const completeContent = document.getElementById('completeContent');
+
+    // 다른 모달 숨기기
+    document.querySelectorAll('.alert-modal, .settings-modal').forEach(el => el.style.display = 'none');
+
+    // 완료 모달 보이기
+    modal.style.display = 'flex';
+    completeContent.style.display = 'block';
+    document.getElementById('completeMsg').innerText = message;
+
+    // 3초 후 자동으로 닫기
+    completeTimeoutId = setTimeout(() => {
+        if (completeContent.style.display !== 'none') {
+            closeModal();
+        }
+    }, 3000);
+}
+
+function closeModal() {
+    // 완료 모달 타임아웃 취소
+    if (completeTimeoutId) {
+        clearTimeout(completeTimeoutId);
+        completeTimeoutId = null;
+    }
+    document.getElementById('modalOverlay').style.display = 'none';
+}
+
+/* --- 서버 연결 상태 관리 --- */
+let serverConnected = true;
+
+function updateServerStatus() {
+    // 나중에 실제 서버 통신 코드로 변경
+    // 현재는 항상 연결됨으로 표시
+    serverConnected = true;
+
+    const statusElement = document.getElementById('serverStatus');
+    const container = document.getElementById('serverStatusContainer');
+
+    if (statusElement && container) {
+        if (serverConnected) {
+            statusElement.textContent = '📶';
+            container.style.opacity = '1';
+            document.getElementById('serverTooltip').textContent = '서버와 연결되었습니다.';
+        } else {
+            statusElement.textContent = '📡';
+            container.style.opacity = '0.6';
+            document.getElementById('serverTooltip').textContent = '서버 연결이 끊어졌습니다.';
+        }
+    }
+}
+
+function showServerTooltip() {
+    const tooltip = document.getElementById('serverTooltip');
+    if (tooltip) {
+        tooltip.style.display = 'block';
+    }
+}
+
+function hideServerTooltip() {
+    const tooltip = document.getElementById('serverTooltip');
+    if (tooltip) {
+        tooltip.style.display = 'none';
+    }
+}
+
+// 페이지 로드 후 1초마다 서버 상태 갱신
+document.addEventListener('DOMContentLoaded', () => {
+    updateServerStatus(); // 초기 상태 설정
+    setInterval(updateServerStatus, 1000); // 1초마다 갱신
+});
     </script>
 </body>
 
