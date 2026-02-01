@@ -516,6 +516,14 @@
             </div>
         </div>
 
+        <div id="completeContent" class="alert-modal" style="display: none;">
+            <div style="font-size: 18px; font-weight: 700; margin-bottom: 15px; color: var(--text);">완료</div>
+            <div id="completeMsg" style="font-size: 14px; color: #636e72; line-height: 1.6; margin-bottom: 25px;"></div>
+            <button
+                style="background: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 14px; width: 100%; cursor: pointer; font-weight: 600;"
+                onclick="closeModal()">확인</button>
+        </div>
+
         <div id="settingsContent" class="settings-modal" style="display: none;">
             <div class="settings-sidebar">
                 <div class="settings-menu-item active" onclick="switchTab(event, 'general')">일반</div>
@@ -592,6 +600,9 @@ let pathHistory = [];
 
 // 작업 취소 플래그
 let isCanceled = false;
+
+// 완료 모달 타임아웃 ID
+let completeTimeoutId = null;
 
 /* --- 경로 관리 함수들 --- */
 // 경로 변경 (히스토리에 추가)
@@ -1083,7 +1094,7 @@ async function handleExecution() {
         updateProgress(100);
         await new Promise(resolve => setTimeout(resolve, 500));
         hideProgress();
-        alert(`완료: ${processedCount}개 파일이 처리되었습니다.`);
+        showCompletionModal(`${processedCount}개 파일이 처리되었습니다.`);
     }
 
     // 파일 목록 새로고침
@@ -1150,8 +1161,53 @@ function updateBar() {
 // 에러 방지용 빈 함수들
 function deleteFiles() { alert("삭제 기능은 안전을 위해 비활성화됨"); }
 function openSettings() { alert("설정 메뉴"); }
-function logout() { alert("로그아웃"); }
-function closeModal() { document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none'); }
+function logout() {
+    const modal = document.getElementById('modalOverlay');
+    const logoutContent = document.getElementById('logoutContent');
+
+    // 다른 모달 숨기기
+    document.querySelectorAll('.alert-modal, .settings-modal').forEach(el => el.style.display = 'none');
+
+    // 로그아웃 모달 보이기
+    modal.style.display = 'flex';
+    logoutContent.style.display = 'block';
+}
+
+// 파일 처리 완료 모달 표시
+function showCompletionModal(message) {
+    // 타임아웃 취소 (이전이 있으면)
+    if (completeTimeoutId) {
+        clearTimeout(completeTimeoutId);
+        completeTimeoutId = null;
+    }
+
+    const modal = document.getElementById('modalOverlay');
+    const completeContent = document.getElementById('completeContent');
+
+    // 다른 모달 숨기기
+    document.querySelectorAll('.alert-modal, .settings-modal').forEach(el => el.style.display = 'none');
+
+    // 완료 모달 보이기
+    modal.style.display = 'flex';
+    completeContent.style.display = 'block';
+    document.getElementById('completeMsg').innerText = message;
+
+    // 3초 후 자동으로 닫기
+    completeTimeoutId = setTimeout(() => {
+        if (completeContent.style.display !== 'none') {
+            closeModal();
+        }
+    }, 3000);
+}
+
+function closeModal() {
+    // 완료 모달 타임아웃 취소
+    if (completeTimeoutId) {
+        clearTimeout(completeTimeoutId);
+        completeTimeoutId = null;
+    }
+    document.getElementById('modalOverlay').style.display = 'none';
+}
     </script>
 </body>
 
