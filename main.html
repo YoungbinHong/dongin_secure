@@ -550,6 +550,51 @@
                 opacity: 1;
             }
         }
+
+        /* --- 서버 연결 상태 --- */
+        .server-status {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 55px;
+            height: 55px;
+            background: var(--glass);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: 0.2s;
+        }
+
+        .server-status:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .server-tooltip {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: var(--glass);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            display: none;
+            z-index: 101;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: var(--text);
+        }
+
+        body.dark-theme .server-status {
+            background: rgba(25, 25, 25, 0.9);
+        }
     </style>
 </head>
 
@@ -741,6 +786,12 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- 서버 연결 상태 표시 -->
+    <div id="serverStatusContainer" class="server-status" onmouseover="showServerTooltip()" onmouseout="hideServerTooltip()" title="서버 상태">
+        <span id="serverStatus">📶</span>
+        <div id="serverTooltip" class="server-tooltip"></div>
     </div>
 
     <script>
@@ -1431,6 +1482,50 @@ function closeModal() {
     }
     document.getElementById('modalOverlay').style.display = 'none';
 }
+
+/* --- 서버 연결 상태 관리 --- */
+let serverConnected = true;
+
+function updateServerStatus() {
+    // 나중에 실제 서버 통신 코드로 변경
+    // 현재는 항상 연결됨으로 표시
+    serverConnected = true;
+
+    const statusElement = document.getElementById('serverStatus');
+    const container = document.getElementById('serverStatusContainer');
+
+    if (statusElement && container) {
+        if (serverConnected) {
+            statusElement.textContent = '📶';
+            container.style.opacity = '1';
+            document.getElementById('serverTooltip').textContent = '서버와 연결되었습니다.';
+        } else {
+            statusElement.textContent = '📡';
+            container.style.opacity = '0.6';
+            document.getElementById('serverTooltip').textContent = '서버 연결이 끊어졌습니다.';
+        }
+    }
+}
+
+function showServerTooltip() {
+    const tooltip = document.getElementById('serverTooltip');
+    if (tooltip) {
+        tooltip.style.display = 'block';
+    }
+}
+
+function hideServerTooltip() {
+    const tooltip = document.getElementById('serverTooltip');
+    if (tooltip) {
+        tooltip.style.display = 'none';
+    }
+}
+
+// 페이지 로드 후 1초마다 서버 상태 갱신
+document.addEventListener('DOMContentLoaded', () => {
+    updateServerStatus(); // 초기 상태 설정
+    setInterval(updateServerStatus, 1000); // 1초마다 갱신
+});
     </script>
 </body>
 
