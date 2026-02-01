@@ -1033,8 +1033,6 @@ function initSidebar() {
                     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
                     itemDiv.classList.add('active');
 
-                    // 히스토리 초기화 (사이드바에서 새로운 루트로 이동)
-                    pathHistory = [];
                     navigateTo(item.path, item.name);
                 };
 
