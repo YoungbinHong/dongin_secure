@@ -157,8 +157,16 @@
                         <div style="font-size: 12px; color: #b2bec3;">현재 AES-256 비트 암호화가 적용 중입니다.</div>
                     </div>
                     <div class="setting-group">
-                        <label class="setting-label">자동 잠금 시간</label>
-                        <input type="number" value="10" style="width: 60px; padding: 5px;"> 분 동안 활동이 없으면 프로그램을 잠급니다.
+                        <label class="setting-label">자동 로그아웃 시간</label>
+                        <select id="autoLogoutSelect" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; cursor: pointer;" onchange="setAutoLogoutTime(this.value)">
+                            <option value="10">10분</option>
+                            <option value="30">30분</option>
+                            <option value="60">1시간</option>
+                            <option value="180">3시간</option>
+                            <option value="360">6시간</option>
+                            <option value="0">사용 안 함</option>
+                        </select>
+                        <div style="font-size: 12px; color: #b2bec3; margin-top: 8px;">선택한 시간 동안 활동이 없으면 로그아웃합니다.</div>
                     </div>
                 </div>
                 <div id="account" class="settings-tab">

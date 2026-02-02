@@ -23,6 +23,10 @@ let isCanceled = false;
 // 완료 모달 타임아웃 ID
 let completeTimeoutId = null;
 
+// 자동 로그아웃 타이머 ID
+let autoLogoutTimerId = null;
+let lastActivityTime = Date.now();
+
 /* --- 경로 관리 함수들 --- */
 // 경로 변경 (히스토리에 추가)
 function navigateTo(newPath, displayName = null) {
@@ -200,9 +204,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("프로그램 시작됨");
     loadSavedTheme();           // 0. 저장된 테마 불러오기
     loadNoticeSettings();       // 0-1. 저장된 알림 설정 불러오기
+    loadAutoLogoutSetting();    // 0-2. 저장된 자동 로그아웃 설정 불러오기
     initSidebar();              // 1. 사이드바 그려라!
     updateBreadcrumb();         // 2. 초기 경로 표시
     loadRealFiles(currentPath); // 3. 파일 목록 가져와라!
+    initAutoLogout();           // 4. 자동 로그아웃 초기화
 });
 
 /* --- 알림 설정 관리 --- */
@@ -230,6 +236,65 @@ function toggleNoticeCompletion(enabled) {
 function toggleNoticeSecurity(enabled) {
     localStorage.setItem('notice-security', enabled ? 'true' : 'false');
     console.log('보안 알림 설정:', enabled);
+}
+
+/* --- 자동 로그아웃 관리 --- */
+function loadAutoLogoutSetting() {
+    // 저장된 자동 로그아웃 시간 불러오기 (기본값: 10분)
+    const savedTime = localStorage.getItem('auto-logout-time') || '10';
+    const select = document.getElementById('autoLogoutSelect');
+    if (select) {
+        select.value = savedTime;
+    }
+}
+
+function setAutoLogoutTime(minutes) {
+    localStorage.setItem('auto-logout-time', minutes);
+    console.log('자동 로그아웃 시간 설정:', minutes === '0' ? '사용 안 함' : minutes + '분');
+    initAutoLogout(); // 설정 변경 시 타이머 재시작
+}
+
+function initAutoLogout() {
+    // 기존 타이머 제거
+    if (autoLogoutTimerId) {
+        clearInterval(autoLogoutTimerId);
+        autoLogoutTimerId = null;
+    }
+
+    const minutes = parseInt(localStorage.getItem('auto-logout-time') || '10');
+
+    // 사용 안 함인 경우
+    if (minutes === 0) {
+        console.log('자동 로그아웃 비활성화');
+        return;
+    }
+
+    // 활동 감지 이벤트 등록
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    activityEvents.forEach(event => {
+        document.addEventListener(event, resetActivityTimer, { passive: true });
+    });
+
+    // 마지막 활동 시간 초기화
+    lastActivityTime = Date.now();
+
+    // 1분마다 체크
+    autoLogoutTimerId = setInterval(() => {
+        const now = Date.now();
+        const elapsed = (now - lastActivityTime) / 1000 / 60; // 분 단위
+
+        if (elapsed >= minutes) {
+            console.log('자동 로그아웃 실행');
+            clearInterval(autoLogoutTimerId);
+            window.location.href = 'login.html';
+        }
+    }, 60000); // 1분마다 체크
+
+    console.log('자동 로그아웃 타이머 시작:', minutes + '분');
+}
+
+function resetActivityTimer() {
+    lastActivityTime = Date.now();
 }
 
 /* --- 2. 사이드바 자동 생성 함수 (디자인 복구) --- */
