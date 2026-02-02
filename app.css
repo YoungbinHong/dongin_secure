@@ -392,6 +392,135 @@ header {
     background: rgba(162, 155, 254, 0.05);
 }
 
+/* --- 보기 전환 버튼 --- */
+.view-toggle-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+.view-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.view-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+
+body.dark-theme .view-toggle-btn {
+    background: rgba(50, 50, 50, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* --- 자세히 보기 (리스트 뷰) --- */
+.file-list {
+    display: none;
+    flex-direction: column;
+    background: var(--glass);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.file-list.active {
+    display: flex;
+}
+
+.file-grid.hidden {
+    display: none;
+}
+
+.file-list-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 100px;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 12px;
+    font-weight: 600;
+    color: #636e72;
+}
+
+body.dark-theme .file-list-header {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.05);
+    color: #888888;
+}
+
+.file-list-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 100px;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    cursor: pointer;
+    transition: 0.15s;
+    align-items: center;
+}
+
+.file-list-item:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.dark-theme .file-list-item {
+    border-color: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-theme .file-list-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.file-list-item.selected {
+    background: rgba(162, 155, 254, 0.1);
+    border-left: 3px solid var(--accent);
+    padding-left: 17px;
+}
+
+.file-list-item .file-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+}
+
+.file-list-item .file-name span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-list-item .file-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.file-list-item .file-date,
+.file-list-item .file-type,
+.file-list-item .file-size {
+    font-size: 13px;
+    color: #636e72;
+}
+
+body.dark-theme .file-list-item .file-date,
+body.dark-theme .file-list-item .file-type,
+body.dark-theme .file-list-item .file-size {
+    color: #888888;
+}
+
 /* --- 레이아웃: 하단 액션 바 --- */
 .action-bar {
     position: absolute;

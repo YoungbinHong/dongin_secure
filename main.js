@@ -68,12 +68,16 @@ ipcMain.handle('read-directory', async (event, dirPath) => {
                 const stat = await fsPromises.stat(fullPath);
                 return {
                     name: fileName,
-                    isDirectory: stat.isDirectory()
+                    isDirectory: stat.isDirectory(),
+                    size: stat.size,
+                    modifiedTime: stat.mtime.getTime()
                 };
             } catch (e) {
                 return {
                     name: fileName,
                     isDirectory: false,
+                    size: 0,
+                    modifiedTime: 0,
                     error: true
                 };
             }

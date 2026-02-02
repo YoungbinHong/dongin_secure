@@ -7,6 +7,7 @@ let autoLogoutTimerId = null;
 let lastActivityTime = Date.now();
 let homePath = '';
 let pathSep = '\\';
+let viewMode = 'list'; // 'grid' 또는 'list' (기본: 자세히)
 
 /* --- 경로 관리 함수들 --- */
 function navigateTo(newPath, displayName = null) {
@@ -178,6 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentPath = await window.api.joinPath(homePath, 'Desktop');
 
     loadSavedTheme();
+    loadSavedViewMode();
     loadNoticeSettings();
     loadAutoLogoutSetting();
     await initSidebar();
@@ -351,19 +353,125 @@ async function initSidebar() {
     }
 }
 
+/* --- 보기 모드 전환 --- */
+function toggleViewMode() {
+    const grid = document.getElementById('fileGrid');
+    const list = document.getElementById('fileList');
+    const iconGrid = document.getElementById('viewIconGrid');
+    const iconList = document.getElementById('viewIconList');
+
+    if (viewMode === 'grid') {
+        viewMode = 'list';
+        grid.classList.add('hidden');
+        list.classList.add('active');
+        iconGrid.style.display = 'block';
+        iconList.style.display = 'none';
+    } else {
+        viewMode = 'grid';
+        grid.classList.remove('hidden');
+        list.classList.remove('active');
+        iconGrid.style.display = 'none';
+        iconList.style.display = 'block';
+    }
+
+    localStorage.setItem('view-mode', viewMode);
+}
+
+function loadSavedViewMode() {
+    const saved = localStorage.getItem('view-mode');
+    const grid = document.getElementById('fileGrid');
+    const list = document.getElementById('fileList');
+    const iconGrid = document.getElementById('viewIconGrid');
+    const iconList = document.getElementById('viewIconList');
+
+    if (saved === 'grid') {
+        // 저장된 값이 grid면 grid로 설정
+        viewMode = 'grid';
+        grid.classList.remove('hidden');
+        list.classList.remove('active');
+        iconGrid.style.display = 'none';
+        iconList.style.display = 'block';
+    } else {
+        // 기본값 또는 저장된 값이 list면 list로 설정
+        viewMode = 'list';
+        grid.classList.add('hidden');
+        list.classList.add('active');
+        iconGrid.style.display = 'block';
+        iconList.style.display = 'none';
+    }
+}
+
+/* --- 헬퍼 함수: 파일 크기 포맷 --- */
+function formatFileSize(bytes) {
+    if (bytes === 0) return '-';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let unitIndex = 0;
+    let size = bytes;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex++;
+    }
+
+    return size.toFixed(unitIndex === 0 ? 0 : 1) + ' ' + units[unitIndex];
+}
+
+/* --- 헬퍼 함수: 날짜 포맷 --- */
+function formatDate(timestamp) {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+/* --- 헬퍼 함수: 파일 유형 --- */
+function getFileType(fileName, isDir) {
+    if (isDir) return '파일 폴더';
+
+    const ext = fileName.split('.').pop().toLowerCase();
+    const types = {
+        'txt': '텍스트 문서',
+        'pdf': 'PDF 문서',
+        'doc': 'Word 문서',
+        'docx': 'Word 문서',
+        'xls': 'Excel 스프레드시트',
+        'xlsx': 'Excel 스프레드시트',
+        'ppt': 'PowerPoint 프레젠테이션',
+        'pptx': 'PowerPoint 프레젠테이션',
+        'png': 'PNG 이미지',
+        'jpg': 'JPEG 이미지',
+        'jpeg': 'JPEG 이미지',
+        'gif': 'GIF 이미지',
+        'mp3': 'MP3 오디오',
+        'mp4': 'MP4 비디오',
+        'zip': 'ZIP 압축 파일',
+        'exe': '응용 프로그램',
+        'dongin': '암호화된 파일'
+    };
+
+    return types[ext] || ext.toUpperCase() + ' 파일';
+}
+
 /* --- 실제 파일 목록 불러오기 --- */
 async function loadRealFiles(targetPath) {
     const grid = document.getElementById('fileGrid');
-    if (!grid) return;
+    const listBody = document.getElementById('fileListBody');
+    if (!grid || !listBody) return;
 
     const result = await window.api.readDirectory(targetPath);
 
     if (!result.success) {
         grid.innerHTML = '<div style="padding:20px; color:#999;">폴더를 열 수 없습니다.</div>';
+        listBody.innerHTML = '<div style="padding:20px; color:#999;">폴더를 열 수 없습니다.</div>';
         return;
     }
 
     grid.innerHTML = '';
+    listBody.innerHTML = '';
 
     for (const file of result.files) {
         const fileName = file.name;
@@ -385,13 +493,14 @@ async function loadRealFiles(targetPath) {
         else if (fileName.endsWith('.pdf')) icon = '📕';
         else if (fileName.endsWith('.dongin')) icon = '🔒';
 
-        const div = document.createElement('div');
-        div.className = 'file-card';
-        div.dataset.path = fullPath;
-        div.dataset.isDir = isDir;
+        // 그리드 뷰 아이템
+        const gridItem = document.createElement('div');
+        gridItem.className = 'file-card';
+        gridItem.dataset.path = fullPath;
+        gridItem.dataset.isDir = isDir;
 
-        div.onclick = function () { toggleSelect(this); };
-        div.ondblclick = function () {
+        gridItem.onclick = function () { toggleSelect(this); };
+        gridItem.ondblclick = function () {
             if (isDir) {
                 navigateTo(fullPath, fileName);
             } else {
@@ -399,11 +508,37 @@ async function loadRealFiles(targetPath) {
             }
         };
 
-        div.innerHTML = `
+        gridItem.innerHTML = `
             <div style="font-size: 40px; margin-bottom: 10px;">${icon}</div>
             <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${fileName}</div>
         `;
-        grid.appendChild(div);
+        grid.appendChild(gridItem);
+
+        // 리스트 뷰 아이템
+        const listItem = document.createElement('div');
+        listItem.className = 'file-list-item';
+        listItem.dataset.path = fullPath;
+        listItem.dataset.isDir = isDir;
+
+        listItem.onclick = function () { toggleSelectList(this); };
+        listItem.ondblclick = function () {
+            if (isDir) {
+                navigateTo(fullPath, fileName);
+            } else {
+                openFile(fullPath);
+            }
+        };
+
+        listItem.innerHTML = `
+            <div class="file-name">
+                <span class="file-icon">${icon}</span>
+                <span>${fileName}</span>
+            </div>
+            <div class="file-date">${formatDate(file.modifiedTime)}</div>
+            <div class="file-type">${getFileType(fileName, isDir)}</div>
+            <div class="file-size">${isDir ? '-' : formatFileSize(file.size)}</div>
+        `;
+        listBody.appendChild(listItem);
     }
 }
 
@@ -424,7 +559,10 @@ async function openFile(filePath) {
 }
 
 async function openSelectedFiles() {
-    const selectedFiles = document.querySelectorAll('.file-card.selected');
+    const selectedFiles = viewMode === 'grid'
+        ? document.querySelectorAll('.file-card.selected')
+        : document.querySelectorAll('.file-list-item.selected');
+
     if (selectedFiles.length === 0) {
         showAlertModal('알림', '파일을 선택해주세요.');
         return;
@@ -435,12 +573,17 @@ async function openSelectedFiles() {
         return;
     }
 
-    const card = selectedFiles[0];
-    const fullPath = card.dataset.path;
-    const isDir = card.dataset.isDir === 'true';
+    const item = selectedFiles[0];
+    const fullPath = item.dataset.path;
+    const isDir = item.dataset.isDir === 'true';
 
     if (isDir) {
-        const fileName = card.querySelector('div:last-child').innerText;
+        let fileName;
+        if (item.classList.contains('file-card')) {
+            fileName = item.querySelector('div:last-child').innerText;
+        } else {
+            fileName = item.querySelector('.file-name span:last-child').innerText;
+        }
         navigateTo(fullPath, fileName);
     } else {
         await openFile(fullPath);
@@ -489,16 +632,24 @@ function cancelTask() {
 
 /* --- 기능: 암호화/복호화 실행 --- */
 async function handleExecution() {
-    const selectedFiles = document.querySelectorAll('.file-card.selected');
+    const selectedFiles = viewMode === 'grid'
+        ? document.querySelectorAll('.file-card.selected')
+        : document.querySelectorAll('.file-list-item.selected');
+
     if (selectedFiles.length === 0) {
         showAlertModal('알림', '파일을 선택해주세요.');
         return;
     }
 
-    const fileList = Array.from(selectedFiles).map(card => ({
-        name: card.querySelector('div:last-child').innerText,
-        path: card.dataset.path
-    }));
+    const fileList = Array.from(selectedFiles).map(item => {
+        let name;
+        if (item.classList.contains('file-card')) {
+            name = item.querySelector('div:last-child').innerText;
+        } else {
+            name = item.querySelector('.file-name span:last-child').innerText;
+        }
+        return { name, path: item.dataset.path };
+    });
 
     const totalFiles = fileList.length;
     const isEncrypting = !fileList[0].name.endsWith('.dongin');
@@ -555,27 +706,67 @@ async function handleExecution() {
 }
 
 /* --- UI 보조 함수들 --- */
-function toggleSelect(element) {
-    const currentName = element.querySelector('div:last-child').innerText.toLowerCase();
-    const isTargetEncrypted = currentName.endsWith('.dongin');
+function syncSelection(path, selected) {
+    // 같은 경로를 가진 모든 요소의 선택 상태 동기화
+    document.querySelectorAll('.file-card, .file-list-item').forEach(el => {
+        if (el.dataset.path === path) {
+            if (selected) {
+                el.classList.add('selected');
+            } else {
+                el.classList.remove('selected');
+            }
+        }
+    });
+}
 
-    const selectedFiles = document.querySelectorAll('.file-card.selected');
-
-    selectedFiles.forEach(file => {
-        const fileName = file.querySelector('div:last-child').innerText.toLowerCase();
+function clearConflictingSelections(isTargetEncrypted) {
+    // 암호화/일반 파일 혼합 선택 방지
+    document.querySelectorAll('.file-card.selected, .file-list-item.selected').forEach(file => {
+        let fileName;
+        if (file.classList.contains('file-card')) {
+            fileName = file.querySelector('div:last-child').innerText.toLowerCase();
+        } else {
+            fileName = file.querySelector('.file-name span:last-child').innerText.toLowerCase();
+        }
         const isFileEncrypted = fileName.endsWith('.dongin');
 
         if (isTargetEncrypted !== isFileEncrypted) {
             file.classList.remove('selected');
         }
     });
+}
 
-    element.classList.toggle('selected');
+function toggleSelect(element) {
+    const currentName = element.querySelector('div:last-child').innerText.toLowerCase();
+    const isTargetEncrypted = currentName.endsWith('.dongin');
+
+    clearConflictingSelections(isTargetEncrypted);
+
+    const path = element.dataset.path;
+    const isSelected = element.classList.contains('selected');
+    syncSelection(path, !isSelected);
+
+    updateBar();
+}
+
+function toggleSelectList(element) {
+    const currentName = element.querySelector('.file-name span:last-child').innerText.toLowerCase();
+    const isTargetEncrypted = currentName.endsWith('.dongin');
+
+    clearConflictingSelections(isTargetEncrypted);
+
+    const path = element.dataset.path;
+    const isSelected = element.classList.contains('selected');
+    syncSelection(path, !isSelected);
+
     updateBar();
 }
 
 function updateBar() {
-    const selectedFiles = document.querySelectorAll('.file-card.selected');
+    // 현재 보기 모드에 따라 선택된 파일 확인
+    const selectedFiles = viewMode === 'grid'
+        ? document.querySelectorAll('.file-card.selected')
+        : document.querySelectorAll('.file-list-item.selected');
     const count = selectedFiles.length;
     const actionBar = document.getElementById('actionBar');
     const executeBtn = document.getElementById('executeBtn');
@@ -586,9 +777,15 @@ function updateBar() {
             actionBar.classList.add('show');
             document.getElementById('count').innerText = count;
 
-            const hasEncrypted = Array.from(selectedFiles).some(card =>
-                card.querySelector('div:last-child').innerText.toLowerCase().endsWith('.dongin')
-            );
+            const hasEncrypted = Array.from(selectedFiles).some(item => {
+                let fileName;
+                if (item.classList.contains('file-card')) {
+                    fileName = item.querySelector('div:last-child').innerText.toLowerCase();
+                } else {
+                    fileName = item.querySelector('.file-name span:last-child').innerText.toLowerCase();
+                }
+                return fileName.endsWith('.dongin');
+            });
 
             executeBtn.innerText = hasEncrypted ? "복호화 실행" : "암호화 실행";
 
@@ -605,7 +802,10 @@ function updateBar() {
 
 /* --- 삭제 기능 --- */
 function deleteFiles() {
-    const selectedFiles = document.querySelectorAll('.file-card.selected');
+    const selectedFiles = viewMode === 'grid'
+        ? document.querySelectorAll('.file-card.selected')
+        : document.querySelectorAll('.file-list-item.selected');
+
     if (selectedFiles.length === 0) {
         showAlertModal('알림', '삭제할 파일을 선택해주세요.');
         return;
@@ -624,8 +824,11 @@ function deleteFiles() {
 }
 
 async function executeDelete() {
-    const selectedFiles = document.querySelectorAll('.file-card.selected');
-    const fileList = Array.from(selectedFiles).map(card => card.dataset.path);
+    const selectedFiles = viewMode === 'grid'
+        ? document.querySelectorAll('.file-card.selected')
+        : document.querySelectorAll('.file-list-item.selected');
+
+    const fileList = Array.from(selectedFiles).map(item => item.dataset.path);
 
     closeModal();
 
