@@ -1,10 +1,12 @@
 {
   "name": "dongin-secure",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win portable"
+    "build": "electron-builder --win nsis --x64",
+    "build:32": "electron-builder --win nsis --ia32",
+    "build:all": "electron-builder --win nsis"
   },
   "devDependencies": {
     "electron": "^33.0.2",
@@ -14,12 +16,17 @@
     "appId": "com.dongin.secure",
     "productName": "DONGIN SECURE",
     "win": {
-      "target": "portable",
+      "target": {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
       "icon": "icon.ico"
     },
-    "portable": {
-      "artifactName": "${productName}_v${version}.exe",
-      "unpackDirName": "dongin_temp"
+    "nsis": {
+      "artifactName": "${productName}_v${version}_Setup.exe",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "differentialPackage": false
     }
   }
 }
