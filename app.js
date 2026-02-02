@@ -893,6 +893,17 @@ function logout() {
     logoutContent.style.display = 'block';
 }
 
+function confirmLogout() {
+    closeModal();
+
+    const overlay = document.getElementById('logoutOverlay');
+    overlay.classList.add('active');
+
+    setTimeout(() => {
+        window.location.href = 'login.html';
+    }, 1800);
+}
+
 /* --- 모달 관련 --- */
 function showCompletionModal(message) {
     const noticeEnabled = localStorage.getItem('notice-completion') !== 'false';

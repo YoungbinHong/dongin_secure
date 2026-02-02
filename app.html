@@ -100,7 +100,7 @@
                     onclick="closeModal()">취소</button>
                 <button
                     style="flex: 1; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 14px; cursor: pointer; font-weight: 600;"
-                    onclick="location.href='login.html'">확인</button>
+                    onclick="confirmLogout()">확인</button>
             </div>
         </div>
 
@@ -227,6 +227,26 @@
     <div id="serverStatusContainer" class="server-status" onmouseover="showServerTooltip()" onmouseout="hideServerTooltip()" title="서버 상태">
         <span id="serverStatus">📶</span>
         <div id="serverTooltip" class="server-tooltip"></div>
+    </div>
+
+    <!-- 로그아웃 전환 오버레이 -->
+    <div id="logoutOverlay" class="logout-overlay">
+        <div class="logout-wave-wrapper">
+            <div class="logout-wave"></div>
+            <div class="logout-wave"></div>
+            <div class="logout-wave"></div>
+        </div>
+        <div class="logout-card-wrapper">
+            <div class="logout-card">
+                <h1 style="font-weight: 900; font-size: 22px; margin-bottom: 30px;">
+                    <span style="color: #2d3436;">DONGIN</span>
+                    <span style="color: #a29bfe;">SECURE</span>
+                </h1>
+                <div style="width: 100%; height: 50px; background: rgba(255,255,255,0.9); border-radius: 14px; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 12px; box-sizing: border-box;"></div>
+                <div style="width: 100%; height: 50px; background: rgba(255,255,255,0.9); border-radius: 14px; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 12px; box-sizing: border-box;"></div>
+                <div class="logout-btn-loading"></div>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>
