@@ -26,6 +26,7 @@ function navigateTo(newPath, displayName = null) {
     }
 
     updateBreadcrumb(displayName);
+    updateSidebarActive();
     loadRealFiles(currentPath);
 }
 
@@ -42,6 +43,31 @@ function goBack() {
 
     updateBreadcrumb();
     loadRealFiles(currentPath);
+    updateSidebarActive();
+}
+
+function updateSidebarActive() {
+    const navItems = document.querySelectorAll('.nav-item');
+    let found = false;
+
+    navItems.forEach(item => {
+        item.classList.remove('active');
+        const itemPath = item.dataset.path;
+        if (itemPath && currentPath.toLowerCase() === itemPath.toLowerCase()) {
+            item.classList.add('active');
+            found = true;
+        }
+    });
+
+    // 현재 경로가 즐겨찾기 항목의 하위 폴더인 경우 부모 항목 활성화
+    if (!found) {
+        navItems.forEach(item => {
+            const itemPath = item.dataset.path;
+            if (itemPath && currentPath.toLowerCase().startsWith(itemPath.toLowerCase() + '\\')) {
+                item.classList.add('active');
+            }
+        });
+    }
 }
 
 async function updateBreadcrumb(displayName = null) {
@@ -333,6 +359,7 @@ async function initSidebar() {
                 hasItem = true;
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'nav-item';
+                itemDiv.dataset.path = item.path;
                 if (item.name === '바탕 화면') itemDiv.classList.add('active');
 
                 itemDiv.innerHTML = `<i>${item.icon}</i>${item.name}`;
