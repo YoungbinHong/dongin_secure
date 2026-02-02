@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>DONGIN SECURE</title>
+    <title>DONGIN SECURE v0.1.0</title>
     <style>
         :root {
             --bg: #f8faff;
@@ -200,6 +200,19 @@
             font-weight: 900;
             color: var(--accent);
             letter-spacing: -0.5px;
+        }
+
+        .logo-version {
+            font-size: 11px;
+            font-weight: 600;
+            color: #b2bec3;
+            margin-left: 6px;
+            align-self: flex-end;
+            margin-bottom: 2px;
+        }
+
+        body.dark-theme .logo-version {
+            color: #888888;
         }
 
         .sidebar-section {
@@ -604,6 +617,7 @@
         <div class="logo-area">
             <div class="logo-main">DONGIN</div>
             <div class="logo-sub">SECURE</div>
+            <div class="logo-version">v0.1.0</div>
         </div>
 
         <div id="sidebarMenu" style="flex: 1; overflow-y: auto;"></div>
@@ -776,7 +790,7 @@
                     <div class="settings-title">프로그램 정보</div>
                     <div class="setting-group">
                         <label class="setting-label">프로그램 이름</label>
-                        <div style="font-size: 14px; color: #636e72;">DONGIN SECURE v1.0.0</div>
+                        <div style="font-size: 14px; color: #636e72;">DONGIN SECURE v0.1.0</div>
                     </div>
                     <div class="setting-group">
                         <label class="setting-label">버전 상태</label>
@@ -1301,18 +1315,40 @@ async function handleExecution() {
                 let decrypted = decipher.update(encryptedData);
                 decrypted = Buffer.concat([decrypted, decipher.final()]);
 
-                const originalName = file.name.replace('.dongin', '');
+                // 헤더에서 원래 확장자 추출 (처음 2바이트: 확장자 길이, 그 다음: 확장자)
+                const extLength = decrypted.readUInt16LE(0);
+                const originalExt = decrypted.slice(2, 2 + extLength).toString('utf8');
+                const originalData = decrypted.slice(2 + extLength);
+
+                // 원래 파일명 복원: test.dongin → test.pdf
+                const baseName = file.name.replace('.dongin', '');
+                const originalName = baseName + originalExt;
                 const outputPath = path.join(currentPath, originalName);
-                await fsPromises.writeFile(outputPath, decrypted);
+                await fsPromises.writeFile(outputPath, originalData);
                 await fsPromises.unlink(file.path);
             } else {
                 // 암호화
                 const data = await fsPromises.readFile(file.path);
+
+                // 원래 확장자 추출 및 헤더 생성
+                const ext = path.extname(file.name); // 예: ".pdf"
+                const extBuffer = Buffer.from(ext, 'utf8');
+                const extLengthBuffer = Buffer.alloc(2);
+                extLengthBuffer.writeUInt16LE(extBuffer.length, 0);
+
+                // 헤더(확장자 길이 + 확장자) + 원본 데이터를 함께 암호화
+                const dataWithHeader = Buffer.concat([extLengthBuffer, extBuffer, data]);
+
                 const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, IV);
-                let encrypted = cipher.update(data);
+                let encrypted = cipher.update(dataWithHeader);
                 encrypted = Buffer.concat([encrypted, cipher.final()]);
 
-                await fsPromises.writeFile(file.path + '.dongin', encrypted);
+                // 새 파일명: test.pdf → test.dongin (확장자만 .dongin으로 교체)
+                const baseName = path.basename(file.name, ext); // 확장자 제외한 이름
+                const newFileName = baseName + '.dongin';
+                const outputPath = path.join(currentPath, newFileName);
+
+                await fsPromises.writeFile(outputPath, encrypted);
                 await fsPromises.unlink(file.path);
             }
 
