@@ -750,7 +750,7 @@
                     </div>
                     <div class="setting-group">
                         <label class="setting-label">윈도우 시작 시 자동 실행</label>
-                        <input type="checkbox" checked> <span style="font-size: 13px;">컴퓨터를 켜면 바로 DONGIN SECURE를
+                        <input type="checkbox" id="autoStartCheckbox" onchange="toggleAutoStart(this.checked)"> <span style="font-size: 13px;">컴퓨터를 켜면 바로 DONGIN SECURE를
                             실행합니다.</span>
                     </div>
                 </div>
@@ -1561,7 +1561,55 @@ function hideServerTooltip() {
 document.addEventListener('DOMContentLoaded', () => {
     updateServerStatus(); // 초기 상태 설정
     setInterval(updateServerStatus, 1000); // 1초마다 갱신
+    checkAutoStartStatus(); // 자동 실행 상태 확인
 });
+
+/* --- 윈도우 시작 시 자동 실행 관리 --- */
+const APP_NAME = 'DonginSecure';
+const REG_KEY = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
+
+// 현재 자동 실행 상태 확인
+function checkAutoStartStatus() {
+    const checkbox = document.getElementById('autoStartCheckbox');
+    if (!checkbox) return;
+
+    exec(`reg query "${REG_KEY}" /v "${APP_NAME}"`, (error, stdout) => {
+        if (error) {
+            // 레지스트리에 없음 = 자동 실행 비활성화
+            checkbox.checked = false;
+        } else {
+            // 레지스트리에 있음 = 자동 실행 활성화
+            checkbox.checked = true;
+        }
+    });
+}
+
+// 자동 실행 토글
+function toggleAutoStart(enabled) {
+    const exePath = process.execPath;
+
+    if (enabled) {
+        // 레지스트리에 추가
+        exec(`reg add "${REG_KEY}" /v "${APP_NAME}" /t REG_SZ /d "${exePath}" /f`, (error) => {
+            if (error) {
+                console.error('자동 실행 등록 실패:', error);
+                alert('자동 실행 등록에 실패했습니다.');
+                document.getElementById('autoStartCheckbox').checked = false;
+            } else {
+                console.log('자동 실행 등록 완료');
+            }
+        });
+    } else {
+        // 레지스트리에서 삭제
+        exec(`reg delete "${REG_KEY}" /v "${APP_NAME}" /f`, (error) => {
+            if (error) {
+                console.error('자동 실행 해제 실패:', error);
+            } else {
+                console.log('자동 실행 해제 완료');
+            }
+        });
+    }
+}
     </script>
 </body>
 
