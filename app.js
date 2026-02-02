@@ -215,7 +215,130 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateBreadcrumb();
     loadRealFiles(currentPath);
     initAutoLogout();
+    initDragSelection();
 });
+
+/* --- 드래그 선택 기능 --- */
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+function initDragSelection() {
+    const fileZone = document.getElementById('fileZone');
+    const selectionBox = document.getElementById('selectionBox');
+    const mainContainer = document.querySelector('.main-container');
+    if (!fileZone || !selectionBox) return;
+
+    // 메인 컨테이너 어디든 클릭하면 선택 해제 (헤더 포함)
+    if (mainContainer) {
+        mainContainer.addEventListener('mousedown', (e) => {
+            // 파일 아이템, 버튼, 액션바 클릭 시 무시
+            if (e.target.closest('.file-card') ||
+                e.target.closest('.file-list-item') ||
+                e.target.closest('.action-bar') ||
+                e.target.closest('button')) {
+                return;
+            }
+
+            // Ctrl 키가 눌려있지 않으면 선택 해제
+            if (!e.ctrlKey) {
+                clearAllSelections();
+            }
+        });
+    }
+
+    fileZone.addEventListener('mousedown', (e) => {
+        // 파일 아이템이나 헤더 클릭 시 드래그 무시
+        if (e.target.closest('.file-card') ||
+            e.target.closest('.file-list-item') ||
+            e.target.closest('.file-list-header')) {
+            return;
+        }
+
+        isDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+
+        selectionBox.style.left = dragStartX + 'px';
+        selectionBox.style.top = dragStartY + 'px';
+        selectionBox.style.width = '0';
+        selectionBox.style.height = '0';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const currentX = e.clientX;
+        const currentY = e.clientY;
+
+        const left = Math.min(dragStartX, currentX);
+        const top = Math.min(dragStartY, currentY);
+        const width = Math.abs(currentX - dragStartX);
+        const height = Math.abs(currentY - dragStartY);
+
+        selectionBox.style.left = left + 'px';
+        selectionBox.style.top = top + 'px';
+        selectionBox.style.width = width + 'px';
+        selectionBox.style.height = height + 'px';
+        selectionBox.classList.add('active');
+
+        // 선택 박스와 겹치는 아이템 선택
+        selectItemsInBox(left, top, width, height, e.ctrlKey);
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            selectionBox.classList.remove('active');
+            selectionBox.style.width = '0';
+            selectionBox.style.height = '0';
+            updateBar();
+        }
+    });
+}
+
+function selectItemsInBox(boxLeft, boxTop, boxWidth, boxHeight, addToSelection) {
+    const boxRight = boxLeft + boxWidth;
+    const boxBottom = boxTop + boxHeight;
+
+    // 그리드 뷰 아이템
+    const gridItems = document.querySelectorAll('.file-card');
+    gridItems.forEach(item => {
+        const rect = item.getBoundingClientRect();
+        const intersects = !(rect.right < boxLeft ||
+                            rect.left > boxRight ||
+                            rect.bottom < boxTop ||
+                            rect.top > boxBottom);
+
+        if (intersects) {
+            item.classList.add('selected');
+        } else if (!addToSelection) {
+            item.classList.remove('selected');
+        }
+    });
+
+    // 리스트 뷰 아이템
+    const listItems = document.querySelectorAll('.file-list-item');
+    listItems.forEach(item => {
+        const rect = item.getBoundingClientRect();
+        const intersects = !(rect.right < boxLeft ||
+                            rect.left > boxRight ||
+                            rect.bottom < boxTop ||
+                            rect.top > boxBottom);
+
+        if (intersects) {
+            item.classList.add('selected');
+        } else if (!addToSelection) {
+            item.classList.remove('selected');
+        }
+    });
+}
+
+function clearAllSelections() {
+    document.querySelectorAll('.file-card.selected').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.file-list-item.selected').forEach(el => el.classList.remove('selected'));
+    updateBar();
+}
 
 /* --- 알림 설정 관리 --- */
 function loadNoticeSettings() {
