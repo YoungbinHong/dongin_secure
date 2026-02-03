@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>DONGIN PORTAL</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Pretendard', sans-serif;
+            background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #636e72;
+            font-size: 14px;
+        }
+
+        .card-container {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 1200px;
+        }
+
+        .program-card {
+            width: 280px;
+            height: 320px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .program-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        }
+
+        .program-card:active {
+            transform: translateY(-4px) scale(0.98);
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3436;
+            margin-bottom: 8px;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: #a29bfe;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: #636e72;
+            text-align: center;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .card-badge {
+            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .card-secure .card-icon {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+        }
+
+        .card-secure .card-badge {
+            background: rgba(162, 155, 254, 0.15);
+            color: #6c5ce7;
+        }
+
+        .card-coming .card-icon {
+            background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 100%);
+        }
+
+        .card-coming {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .card-coming:hover {
+            transform: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-coming .card-badge {
+            background: rgba(99, 110, 114, 0.1);
+            color: #636e72;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+        }
+
+        .logout-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #636e72;
+        }
+
+        .server-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            height: 36px;
+            padding: 0 14px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .server-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+            animation: pulse-dot 2s infinite;
+        }
+
+        .server-status-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: #2d3436;
+            opacity: 0.7;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.9); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="logout-btn" onclick="logout()" title="로그아웃">
+        <svg viewBox="0 0 24 24">
+            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+        </svg>
+    </div>
+
+    <div class="header">
+        <h1>
+            <span style="color: #2d3436;">DONGIN</span>
+            <span style="color: #a29bfe;">PORTAL</span>
+        </h1>
+        <p>사용할 프로그램을 선택하세요</p>
+    </div>
+
+    <div class="card-container">
+        <a href="dongin_secure/app.html" class="program-card card-secure">
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                </svg>
+            </div>
+            <div class="card-title">DONGIN SECURE</div>
+            <div class="card-subtitle">파일 암호화 솔루션</div>
+            <div class="card-desc">AES-256 암호화로 파일을 안전하게 보호하세요</div>
+            <div class="card-badge">v0.1.0</div>
+        </a>
+
+        <div class="program-card card-coming">
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+            </div>
+            <div class="card-title">DONGIN DOCS</div>
+            <div class="card-subtitle">문서 관리</div>
+            <div class="card-desc">문서를 체계적으로 관리하고 공유하세요</div>
+            <div class="card-badge">Coming Soon</div>
+        </div>
+
+        <div class="program-card card-coming">
+            <div class="card-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>
+                </svg>
+            </div>
+            <div class="card-title">DONGIN WORK</div>
+            <div class="card-subtitle">업무 관리</div>
+            <div class="card-desc">팀 업무를 효율적으로 관리하세요</div>
+            <div class="card-badge">Coming Soon</div>
+        </div>
+    </div>
+
+    <div class="server-status">
+        <div class="server-status-dot"></div>
+        <span class="server-status-text">연결됨</span>
+    </div>
+
+    <script>
+        function logout() {
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+
+</html>

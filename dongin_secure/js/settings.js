@@ -67,7 +67,7 @@ function initAutoLogout() {
         if (elapsed >= minutes) {
             console.log('자동 로그아웃 실행');
             clearInterval(autoLogoutTimerId);
-            window.location.href = 'login.html';
+            window.location.href = '../login.html';
         }
     }, 60000);
 
@@ -145,6 +145,6 @@ function confirmLogout() {
     overlay.classList.add('active');
 
     setTimeout(() => {
-        window.location.href = 'login.html';
+        window.location.href = '../login.html';
     }, 1800);
 }

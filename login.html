@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>DONGIN SECURE</title>
+    <title>DONGIN PORTAL</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
     <style>
         /* 1. Base / Layout */
         body {
@@ -374,7 +375,7 @@
         <div class="login-card">
             <h1 style="font-weight: 900;">
                 <span style="color: #2d3436;">DONGIN</span>
-                <span style="color: #a29bfe;">SECURE</span>
+                <span style="color: #a29bfe;">PORTAL</span>
             </h1>
             <input type="email" id="email" placeholder="이메일">
             <input type="password" id="password" placeholder="비밀번호">
@@ -412,7 +413,7 @@
                         document.querySelector('.login-wrapper').classList.add('success');
 
                         setTimeout(() => {
-                            window.location.href = 'app.html';
+                            window.location.href = 'menu.html';
                         }, 1000);
                     }, 1000);
                 }, 800);

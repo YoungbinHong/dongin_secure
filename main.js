@@ -21,10 +21,11 @@ function createWindow() {
         height: 800,
         minWidth: 1280,
         minHeight: 800,
+        icon: path.join(__dirname, 'assets', 'images', 'logo.png'),
         webPreferences: {
-            nodeIntegration: false,        // 보안: Node.js 직접 접근 차단
-            contextIsolation: true,        // 보안: 컨텍스트 분리
-            preload: path.join(__dirname, 'preload.js')  // preload 스크립트 지정
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.js')
         },
         autoHideMenuBar: true
     });
