@@ -145,6 +145,6 @@ function confirmLogout() {
     overlay.classList.add('active');
 
     setTimeout(() => {
-        window.location.href = '../login.html';
-    }, 1800);
+        window.location.href = '../login.html?from=logout';
+    }, 600);
 }

@@ -34,6 +34,11 @@
             transition: transform 1s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
+        .wave-wrapper.no-anim {
+            animation: none;
+            transform: translateY(-30%) rotate(15deg);
+        }
+
         .wave {
             position: absolute;
             top: -110%;
@@ -68,6 +73,30 @@
             opacity: 1;
             animation: card-appear 1s cubic-bezier(0.23, 1, 0.32, 1) 1.2s forwards;
             transition: transform 0.8s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.8s;
+        }
+
+        .login-wrapper.no-anim {
+            animation: none;
+            opacity: 1;
+        }
+
+        .wave-wrapper.from-logout {
+            animation: none;
+            transform: translateY(-30%) rotate(15deg);
+            opacity: 0;
+            animation: fade-in 0.8s ease 0.1s forwards;
+        }
+
+        .login-wrapper.from-logout {
+            animation: none;
+            opacity: 0;
+            animation: fade-in 0.8s ease 0.2s forwards;
+        }
+
+        @keyframes fade-in {
+            to {
+                opacity: 1;
+            }
         }
 
         .login-card {
@@ -377,12 +406,12 @@
                 <span style="color: #2d3436;">DONGIN</span>
                 <span style="color: #a29bfe;">PORTAL</span>
             </h1>
-            <input type="email" id="email" placeholder="이메일">
-            <input type="password" id="password" placeholder="비밀번호">
-
-            <div id="errorBox" class="error-box">이메일 또는 비밀번호가 일치하지 않습니다.</div>
-
-            <button onclick="checkLogin()">계속하기</button>
+            <div class="login-form">
+                <input type="email" id="email" placeholder="이메일">
+                <input type="password" id="password" placeholder="비밀번호">
+                <div id="errorBox" class="error-box">이메일 또는 비밀번호가 일치하지 않습니다.</div>
+                <button onclick="checkLogin()">계속하기</button>
+            </div>
         </div>
     </div>
 
@@ -394,6 +423,15 @@
     </div>
 
     <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('from') === 'logout') {
+                document.querySelector('.wave-wrapper').classList.add('from-logout');
+                document.querySelector('.login-wrapper').classList.add('from-logout');
+                history.replaceState(null, '', 'login.html');
+            }
+        })();
+
         function checkLogin() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;

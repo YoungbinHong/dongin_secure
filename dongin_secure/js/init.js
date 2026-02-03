@@ -2,6 +2,14 @@
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("프로그램 시작됨");
 
+    const sidebar = document.querySelector('.sidebar');
+    const mainContainer = document.querySelector('.main-container');
+
+    requestAnimationFrame(() => {
+        if (sidebar) sidebar.classList.add('show');
+        if (mainContainer) mainContainer.classList.add('show');
+    });
+
     // 초기화: 홈 경로와 경로 구분자 가져오기
     homePath = await window.api.getHomePath();
     pathSep = await window.api.getPathSep();
