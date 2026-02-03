@@ -1,4 +1,3 @@
-/* === 미리보기 기능 === */
 function togglePreview() {
     const previewPane = document.getElementById('previewPane');
     const previewBtn = document.getElementById('previewToggleBtn');

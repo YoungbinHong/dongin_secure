@@ -1,4 +1,3 @@
-/* === 정렬 기능 === */
 function toggleSort(column) {
     const headers = document.querySelectorAll('.file-list-header .sortable');
 

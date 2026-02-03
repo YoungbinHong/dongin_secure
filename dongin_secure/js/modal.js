@@ -1,4 +1,3 @@
-/* === 모달 관리 === */
 function showCompletionModal(message) {
     const noticeEnabled = localStorage.getItem('notice-completion') !== 'false';
     if (!noticeEnabled) {

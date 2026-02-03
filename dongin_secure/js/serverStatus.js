@@ -1,4 +1,3 @@
-/* === 서버 연결 상태 관리 === */
 function updateServerStatus() {
     serverConnected = true;
 

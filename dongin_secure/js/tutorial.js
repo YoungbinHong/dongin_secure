@@ -1,4 +1,3 @@
-/* === 튜토리얼 기능 === */
 const tutorialSteps = [
     { type: 'intro' },
     {

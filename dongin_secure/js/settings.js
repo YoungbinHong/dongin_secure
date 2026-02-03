@@ -1,6 +1,3 @@
-/* === 설정 관리 === */
-
-/* 알림 설정 */
 function loadNoticeSettings() {
     const noticeCompletion = localStorage.getItem('notice-completion') !== 'false';
     const notice1 = document.getElementById('notice1');
@@ -25,7 +22,6 @@ function toggleNoticeSecurity(enabled) {
     console.log('보안 알림 설정:', enabled);
 }
 
-/* 자동 로그아웃 */
 function loadAutoLogoutSetting() {
     const savedTime = localStorage.getItem('auto-logout-time') || '10';
     const select = document.getElementById('autoLogoutSelect');
@@ -78,7 +74,6 @@ function resetActivityTimer() {
     lastActivityTime = Date.now();
 }
 
-/* 자동 시작 */
 async function checkAutoStartStatus() {
     const checkbox = document.getElementById('autoStartCheckbox');
     if (!checkbox) return;
@@ -99,7 +94,6 @@ async function toggleAutoStart(enabled) {
     }
 }
 
-/* 설정 모달 */
 function openSettings() {
     const modal = document.getElementById('modalOverlay');
     const settingsContent = document.getElementById('settingsContent');
@@ -127,7 +121,6 @@ function switchTab(event, tabName) {
     event.currentTarget.classList.add('active');
 }
 
-/* 로그아웃 */
 function logout() {
     const modal = document.getElementById('modalOverlay');
     const logoutContent = document.getElementById('logoutContent');

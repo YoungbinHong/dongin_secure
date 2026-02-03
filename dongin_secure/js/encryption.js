@@ -1,6 +1,3 @@
-/* === 암호화/복호화 기능 === */
-
-/* 폴더 내 모든 파일 재귀적으로 수집 */
 async function collectFilesFromFolder(folderPath) {
     const files = [];
 
@@ -32,7 +29,6 @@ async function collectFilesFromFolder(folderPath) {
     return files;
 }
 
-/* 프로그레스바 제어 */
 function showProgress(title, status) {
     const modal = document.getElementById('modalOverlay');
     const progressContent = document.getElementById('progressContent');
@@ -72,7 +68,6 @@ function cancelTask() {
     }, 100);
 }
 
-/* 암호화/복호화 실행 */
 async function handleExecution() {
     let selectedItems;
     if (viewMode === 'grid') {
@@ -181,7 +176,6 @@ async function handleExecution() {
     updateBar();
 }
 
-/* 삭제 기능 */
 function deleteFiles() {
     let selectedFiles;
     if (viewMode === 'grid') {

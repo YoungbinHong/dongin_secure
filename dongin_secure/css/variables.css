@@ -1,4 +1,3 @@
-/* === CSS 변수 및 다크 테마 === */
 :root {
     --bg: #f8faff;
     --sidebar-bg: rgba(255, 255, 255, 0.4);
@@ -15,7 +14,6 @@ body.dark-theme {
     --glass: rgba(25, 25, 25, 0.9);
 }
 
-/* 어두운 테마 추가 스타일 */
 body.dark-theme input,
 body.dark-theme select {
     background: rgba(50, 50, 50, 0.6) !important;

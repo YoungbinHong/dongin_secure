@@ -1,4 +1,3 @@
-/* === 보기 모드 전환 === */
 function toggleViewMode() {
     const grid = document.getElementById('fileGrid');
     const smallGrid = document.getElementById('fileSmallGrid');

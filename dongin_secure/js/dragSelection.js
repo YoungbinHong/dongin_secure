@@ -1,4 +1,3 @@
-/* === 드래그 선택 기능 === */
 function initDragSelection() {
     const selectionBox = document.getElementById('selectionBox');
     const mainContainer = document.querySelector('.main-container');

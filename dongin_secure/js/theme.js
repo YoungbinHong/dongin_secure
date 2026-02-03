@@ -1,4 +1,3 @@
-/* === 테마 관리 === */
 function applyTheme(theme) {
     if (theme === 'dark') {
         document.body.classList.add('dark-theme');

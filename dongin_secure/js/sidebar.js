@@ -1,4 +1,3 @@
-/* === 사이드바 자동 생성 === */
 async function initSidebar() {
     const sidebar = document.getElementById('sidebarMenu');
     if (!sidebar) {
@@ -8,7 +7,6 @@ async function initSidebar() {
 
     sidebar.innerHTML = '';
 
-    // OneDrive 폴더들 자동 검색
     const oneDriveFolders = [];
     try {
         const result = await window.api.readDirectory(homePath);

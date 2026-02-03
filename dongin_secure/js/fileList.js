@@ -1,6 +1,3 @@
-/* === 파일 목록 관리 === */
-
-/* 헬퍼 함수: 파일 크기 포맷 */
 function formatFileSize(bytes) {
     if (bytes === 0) return '-';
     const units = ['B', 'KB', 'MB', 'GB'];
@@ -15,7 +12,6 @@ function formatFileSize(bytes) {
     return size.toFixed(unitIndex === 0 ? 0 : 1) + ' ' + units[unitIndex];
 }
 
-/* 헬퍼 함수: 날짜 포맷 */
 function formatDate(timestamp) {
     if (!timestamp) return '-';
     const date = new Date(timestamp);
@@ -27,7 +23,6 @@ function formatDate(timestamp) {
     return `${year}-${month}-${day} ${hours}:${minutes}`;
 }
 
-/* 헬퍼 함수: 파일 유형 */
 function getFileType(fileName, isDir) {
     if (isDir) return '파일 폴더';
 
@@ -55,7 +50,6 @@ function getFileType(fileName, isDir) {
     return types[ext] || ext.toUpperCase() + ' 파일';
 }
 
-/* 실제 파일 목록 불러오기 */
 async function loadRealFiles(targetPath) {
     const grid = document.getElementById('fileGrid');
     const listBody = document.getElementById('fileListBody');
@@ -92,7 +86,6 @@ async function loadRealFiles(targetPath) {
     renderFileList();
 }
 
-/* 파일 목록 렌더링 */
 async function renderFileList() {
     const grid = document.getElementById('fileGrid');
     const smallGrid = document.getElementById('fileSmallGrid');
@@ -116,7 +109,6 @@ async function renderFileList() {
         else if (fileName.endsWith('.pdf')) icon = '📕';
         else if (fileName.endsWith('.dongin')) icon = '🔒';
 
-        // 큰 아이콘 그리드 뷰
         const gridItem = document.createElement('div');
         gridItem.className = 'file-card';
         gridItem.dataset.path = fullPath;
@@ -134,7 +126,6 @@ async function renderFileList() {
         `;
         grid.appendChild(gridItem);
 
-        // 작은 아이콘 그리드 뷰
         const smallGridItem = document.createElement('div');
         smallGridItem.className = 'file-card-small';
         smallGridItem.dataset.path = fullPath;
@@ -152,7 +143,6 @@ async function renderFileList() {
         `;
         smallGrid.appendChild(smallGridItem);
 
-        // 리스트 뷰
         const listItem = document.createElement('div');
         listItem.className = 'file-list-item';
         listItem.dataset.path = fullPath;
@@ -177,7 +167,6 @@ async function renderFileList() {
     }
 }
 
-/* 파일 열기 */
 async function openFile(filePath) {
     const exists = await window.api.fileExists(filePath);
     if (!exists) {

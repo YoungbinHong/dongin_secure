@@ -1,4 +1,3 @@
-/* === 선택 관리 === */
 function syncSelection(path, selected) {
     document.querySelectorAll('.file-card, .file-card-small, .file-list-item').forEach(el => {
         if (el.dataset.path === path) {

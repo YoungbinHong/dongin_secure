@@ -1,4 +1,3 @@
-/* === 경로 관리 === */
 function navigateTo(newPath, displayName = null) {
     if (currentPath !== newPath) {
         pathHistory.push(currentPath);
