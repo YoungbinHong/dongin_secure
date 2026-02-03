@@ -46,17 +46,26 @@
                 <h1 style="font-size: 20px; margin: 0;" id="headerTitle">바탕 화면</h1>
             </div>
             <div class="view-toggle-btn" id="viewToggleBtn" onclick="toggleViewMode()" title="보기 전환">
-                <svg id="viewIconGrid" viewBox="0 0 24 24">
-                    <path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z"/>
+                <!-- 큰 아이콘 모드일 때: 작은 아이콘으로 전환 아이콘 표시 -->
+                <svg id="viewIconSmallGrid" viewBox="0 0 24 24" style="display: none;">
+                    <path d="M3 3h5v5H3V3zm0 8h5v5H3v-5zm0 8h5v5H3v-5zm8-16h5v5h-5V3zm0 8h5v5h-5v-5zm0 8h5v5h-5v-5zm8-16h5v5h-5V3zm0 8h5v5h-5v-5zm0 8h5v5h-5v-5z"/>
                 </svg>
+                <!-- 작은 아이콘 모드일 때: 자세히로 전환 아이콘 표시 -->
                 <svg id="viewIconList" viewBox="0 0 24 24" style="display: none;">
                     <path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/>
+                </svg>
+                <!-- 자세히 모드일 때: 큰 아이콘으로 전환 아이콘 표시 -->
+                <svg id="viewIconGrid" viewBox="0 0 24 24">
+                    <path d="M3 3h8v8H3V3zm0 10h8v8H3v-8zm10-10h8v8h-8V3zm0 10h8v8h-8v-8z"/>
                 </svg>
             </div>
         </header>
 
         <div class="file-zone" id="fileZone">
             <div class="file-grid hidden" id="fileGrid">
+
+            </div>
+            <div class="file-small-grid hidden" id="fileSmallGrid">
 
             </div>
             <div class="file-list active" id="fileList">

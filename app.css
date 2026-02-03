@@ -402,6 +402,45 @@ header {
     background: rgba(162, 155, 254, 0.05);
 }
 
+/* --- 작은 아이콘 보기 (그리드 뷰) --- */
+.file-small-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 12px;
+    padding: 10px;
+}
+
+.file-small-grid.hidden {
+    display: none;
+}
+
+.file-card-small {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: 0.2s;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.file-card-small:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+}
+
+.file-card-small.selected {
+    border-color: var(--accent);
+    background: rgba(162, 155, 254, 0.05);
+}
+
+body.dark-theme .file-card-small {
+    background: rgba(40, 40, 40, 0.6);
+}
+
 /* --- 보기 전환 버튼 --- */
 .view-toggle-btn {
     width: 36px;

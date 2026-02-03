@@ -7,7 +7,7 @@ let autoLogoutTimerId = null;
 let lastActivityTime = Date.now();
 let homePath = '';
 let pathSep = '\\';
-let viewMode = 'list'; // 'grid' 또는 'list' (기본: 자세히)
+let viewMode = 'list'; // 'grid', 'small-grid', 'list' (기본: 자세히)
 let currentSort = null; // 'name', 'date', 'type', 'size' 또는 null
 let sortDirection = null; // 'asc', 'desc' 또는 null
 let originalFiles = []; // 정렬 전 원본 파일 목록
@@ -326,9 +326,25 @@ function selectItemsInBox(boxLeft, boxTop, boxWidth, boxHeight, addToSelection) 
     const boxRight = boxLeft + boxWidth;
     const boxBottom = boxTop + boxHeight;
 
-    // 그리드 뷰 아이템
+    // 큰 아이콘 그리드 뷰 아이템
     const gridItems = document.querySelectorAll('.file-card');
     gridItems.forEach(item => {
+        const rect = item.getBoundingClientRect();
+        const intersects = !(rect.right < boxLeft ||
+                            rect.left > boxRight ||
+                            rect.bottom < boxTop ||
+                            rect.top > boxBottom);
+
+        if (intersects) {
+            item.classList.add('selected');
+        } else if (!addToSelection) {
+            item.classList.remove('selected');
+        }
+    });
+
+    // 작은 아이콘 그리드 뷰 아이템
+    const smallGridItems = document.querySelectorAll('.file-card-small');
+    smallGridItems.forEach(item => {
         const rect = item.getBoundingClientRect();
         const intersects = !(rect.right < boxLeft ||
                             rect.left > boxRight ||
@@ -361,6 +377,7 @@ function selectItemsInBox(boxLeft, boxTop, boxWidth, boxHeight, addToSelection) 
 
 function clearAllSelections() {
     document.querySelectorAll('.file-card.selected').forEach(el => el.classList.remove('selected'));
+    document.querySelectorAll('.file-card-small.selected').forEach(el => el.classList.remove('selected'));
     document.querySelectorAll('.file-list-item.selected').forEach(el => el.classList.remove('selected'));
     updateBar();
 }
@@ -534,22 +551,33 @@ async function initSidebar() {
 /* --- 보기 모드 전환 --- */
 function toggleViewMode() {
     const grid = document.getElementById('fileGrid');
+    const smallGrid = document.getElementById('fileSmallGrid');
     const list = document.getElementById('fileList');
     const iconGrid = document.getElementById('viewIconGrid');
+    const iconSmallGrid = document.getElementById('viewIconSmallGrid');
     const iconList = document.getElementById('viewIconList');
 
-    if (viewMode === 'grid') {
-        viewMode = 'list';
-        grid.classList.add('hidden');
-        list.classList.add('active');
-        iconGrid.style.display = 'block';
-        iconList.style.display = 'none';
-    } else {
+    // 모든 뷰와 아이콘 숨기기
+    grid.classList.add('hidden');
+    smallGrid.classList.add('hidden');
+    list.classList.remove('active');
+    iconGrid.style.display = 'none';
+    iconSmallGrid.style.display = 'none';
+    iconList.style.display = 'none';
+
+    // 순환: list → grid → small-grid → list
+    if (viewMode === 'list') {
         viewMode = 'grid';
         grid.classList.remove('hidden');
-        list.classList.remove('active');
-        iconGrid.style.display = 'none';
-        iconList.style.display = 'block';
+        iconSmallGrid.style.display = 'block'; // 다음 모드 아이콘 표시
+    } else if (viewMode === 'grid') {
+        viewMode = 'small-grid';
+        smallGrid.classList.remove('hidden');
+        iconList.style.display = 'block'; // 다음 모드 아이콘 표시
+    } else {
+        viewMode = 'list';
+        list.classList.add('active');
+        iconGrid.style.display = 'block'; // 다음 모드 아이콘 표시
     }
 
     localStorage.setItem('view-mode', viewMode);
@@ -558,24 +586,32 @@ function toggleViewMode() {
 function loadSavedViewMode() {
     const saved = localStorage.getItem('view-mode');
     const grid = document.getElementById('fileGrid');
+    const smallGrid = document.getElementById('fileSmallGrid');
     const list = document.getElementById('fileList');
     const iconGrid = document.getElementById('viewIconGrid');
+    const iconSmallGrid = document.getElementById('viewIconSmallGrid');
     const iconList = document.getElementById('viewIconList');
 
+    // 모든 뷰��� 아이콘 숨기기
+    grid.classList.add('hidden');
+    smallGrid.classList.add('hidden');
+    list.classList.remove('active');
+    iconGrid.style.display = 'none';
+    iconSmallGrid.style.display = 'none';
+    iconList.style.display = 'none';
+
     if (saved === 'grid') {
-        // 저장된 값이 grid면 grid로 설정
         viewMode = 'grid';
         grid.classList.remove('hidden');
-        list.classList.remove('active');
-        iconGrid.style.display = 'none';
+        iconSmallGrid.style.display = 'block';
+    } else if (saved === 'small-grid') {
+        viewMode = 'small-grid';
+        smallGrid.classList.remove('hidden');
         iconList.style.display = 'block';
     } else {
-        // 기본값 또는 저장된 값이 list면 list로 설정
         viewMode = 'list';
-        grid.classList.add('hidden');
         list.classList.add('active');
         iconGrid.style.display = 'block';
-        iconList.style.display = 'none';
     }
 }
 
@@ -652,10 +688,12 @@ function sortFiles(files) {
 
 async function renderFileList() {
     const grid = document.getElementById('fileGrid');
+    const smallGrid = document.getElementById('fileSmallGrid');
     const listBody = document.getElementById('fileListBody');
-    if (!grid || !listBody) return;
+    if (!grid || !smallGrid || !listBody) return;
 
     grid.innerHTML = '';
+    smallGrid.innerHTML = '';
     listBody.innerHTML = '';
 
     const sortedFiles = sortFiles(originalFiles);
@@ -671,7 +709,7 @@ async function renderFileList() {
         else if (fileName.endsWith('.pdf')) icon = '📕';
         else if (fileName.endsWith('.dongin')) icon = '🔒';
 
-        // 그리드 뷰 아이템
+        // 큰 아이콘 그리드 뷰 아이템
         const gridItem = document.createElement('div');
         gridItem.className = 'file-card';
         gridItem.dataset.path = fullPath;
@@ -691,6 +729,27 @@ async function renderFileList() {
             <div style="font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${fileName}</div>
         `;
         grid.appendChild(gridItem);
+
+        // 작은 아이콘 그리드 뷰 아이템
+        const smallGridItem = document.createElement('div');
+        smallGridItem.className = 'file-card-small';
+        smallGridItem.dataset.path = fullPath;
+        smallGridItem.dataset.isDir = isDir;
+
+        smallGridItem.onclick = function (e) { toggleSelectSmall(this, e); };
+        smallGridItem.ondblclick = function () {
+            if (isDir) {
+                navigateTo(fullPath, fileName);
+            } else {
+                openFile(fullPath);
+            }
+        };
+
+        smallGridItem.innerHTML = `
+            <div style="font-size: 24px; margin-bottom: 6px;">${icon}</div>
+            <div style="font-size: 11px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${fileName}</div>
+        `;
+        smallGrid.appendChild(smallGridItem);
 
         // 리스트 뷰 아이템
         const listItem = document.createElement('div');
@@ -832,9 +891,14 @@ async function openFile(filePath) {
 }
 
 async function openSelectedFiles() {
-    const selectedFiles = viewMode === 'grid'
-        ? document.querySelectorAll('.file-card.selected')
-        : document.querySelectorAll('.file-list-item.selected');
+    let selectedFiles;
+    if (viewMode === 'grid') {
+        selectedFiles = document.querySelectorAll('.file-card.selected');
+    } else if (viewMode === 'small-grid') {
+        selectedFiles = document.querySelectorAll('.file-card-small.selected');
+    } else {
+        selectedFiles = document.querySelectorAll('.file-list-item.selected');
+    }
 
     if (selectedFiles.length === 0) {
         showAlertModal('알림', '파일을 선택해주세요.');
@@ -852,7 +916,7 @@ async function openSelectedFiles() {
 
     if (isDir) {
         let fileName;
-        if (item.classList.contains('file-card')) {
+        if (item.classList.contains('file-card') || item.classList.contains('file-card-small')) {
             fileName = item.querySelector('div:last-child').innerText;
         } else {
             fileName = item.querySelector('.file-name span:last-child').innerText;
@@ -905,9 +969,14 @@ function cancelTask() {
 
 /* --- 기능: 암호화/복호화 실행 --- */
 async function handleExecution() {
-    const selectedFiles = viewMode === 'grid'
-        ? document.querySelectorAll('.file-card.selected')
-        : document.querySelectorAll('.file-list-item.selected');
+    let selectedFiles;
+    if (viewMode === 'grid') {
+        selectedFiles = document.querySelectorAll('.file-card.selected');
+    } else if (viewMode === 'small-grid') {
+        selectedFiles = document.querySelectorAll('.file-card-small.selected');
+    } else {
+        selectedFiles = document.querySelectorAll('.file-list-item.selected');
+    }
 
     if (selectedFiles.length === 0) {
         showAlertModal('알림', '파일을 선택해주세요.');
@@ -916,7 +985,7 @@ async function handleExecution() {
 
     const fileList = Array.from(selectedFiles).map(item => {
         let name;
-        if (item.classList.contains('file-card')) {
+        if (item.classList.contains('file-card') || item.classList.contains('file-card-small')) {
             name = item.querySelector('div:last-child').innerText;
         } else {
             name = item.querySelector('.file-name span:last-child').innerText;
@@ -981,7 +1050,7 @@ async function handleExecution() {
 /* --- UI 보조 함수들 --- */
 function syncSelection(path, selected) {
     // 같은 경로를 가진 모든 요소의 선택 상태 동기화
-    document.querySelectorAll('.file-card, .file-list-item').forEach(el => {
+    document.querySelectorAll('.file-card, .file-card-small, .file-list-item').forEach(el => {
         if (el.dataset.path === path) {
             if (selected) {
                 el.classList.add('selected');
@@ -994,9 +1063,9 @@ function syncSelection(path, selected) {
 
 function clearConflictingSelections(isTargetEncrypted) {
     // 암호화/일반 파일 혼합 선택 방지
-    document.querySelectorAll('.file-card.selected, .file-list-item.selected').forEach(file => {
+    document.querySelectorAll('.file-card.selected, .file-card-small.selected, .file-list-item.selected').forEach(file => {
         let fileName;
-        if (file.classList.contains('file-card')) {
+        if (file.classList.contains('file-card') || file.classList.contains('file-card-small')) {
             fileName = file.querySelector('div:last-child').innerText.toLowerCase();
         } else {
             fileName = file.querySelector('.file-name span:last-child').innerText.toLowerCase();
@@ -1063,11 +1132,43 @@ function toggleSelectList(element, event) {
     updateBar();
 }
 
+function toggleSelectSmall(element, event) {
+    const currentName = element.querySelector('div:last-child').innerText.toLowerCase();
+    const isTargetEncrypted = currentName.endsWith('.dongin');
+    const path = element.dataset.path;
+
+    if (event && event.shiftKey && lastSelectedPath) {
+        // Shift + 클릭: 범위 선택
+        selectRange(lastSelectedPath, path, 'small-grid');
+    } else if (event && event.ctrlKey) {
+        // Ctrl + 클릭: 토글 (기존 선택 유지)
+        clearConflictingSelections(isTargetEncrypted);
+        const isSelected = element.classList.contains('selected');
+        syncSelection(path, !isSelected);
+        if (!isSelected) {
+            lastSelectedPath = path;
+        }
+    } else {
+        // 일반 클릭: 단일 선택 (기존 선택 해제)
+        clearAllSelections();
+        clearConflictingSelections(isTargetEncrypted);
+        syncSelection(path, true);
+        lastSelectedPath = path;
+    }
+
+    updateBar();
+}
+
 function selectRange(startPath, endPath, viewType) {
     // 현재 뷰의 모든 아이템 가져오기
-    const items = viewType === 'grid'
-        ? Array.from(document.querySelectorAll('.file-card'))
-        : Array.from(document.querySelectorAll('.file-list-item'));
+    let items;
+    if (viewType === 'grid') {
+        items = Array.from(document.querySelectorAll('.file-card'));
+    } else if (viewType === 'small-grid') {
+        items = Array.from(document.querySelectorAll('.file-card-small'));
+    } else {
+        items = Array.from(document.querySelectorAll('.file-list-item'));
+    }
 
     // 시작과 끝 인덱스 찾기
     let startIndex = items.findIndex(item => item.dataset.path === startPath);
@@ -1083,7 +1184,7 @@ function selectRange(startPath, endPath, viewType) {
     // 범위 내 첫 번째 아이템의 암호화 상태 확인
     const firstItem = items[startIndex];
     let firstName;
-    if (viewType === 'grid') {
+    if (viewType === 'grid' || viewType === 'small-grid') {
         firstName = firstItem.querySelector('div:last-child').innerText.toLowerCase();
     } else {
         firstName = firstItem.querySelector('.file-name span:last-child').innerText.toLowerCase();
@@ -1098,7 +1199,7 @@ function selectRange(startPath, endPath, viewType) {
     for (let i = startIndex; i <= endIndex; i++) {
         const item = items[i];
         let itemName;
-        if (viewType === 'grid') {
+        if (viewType === 'grid' || viewType === 'small-grid') {
             itemName = item.querySelector('div:last-child').innerText.toLowerCase();
         } else {
             itemName = item.querySelector('.file-name span:last-child').innerText.toLowerCase();
@@ -1116,9 +1217,14 @@ function selectRange(startPath, endPath, viewType) {
 
 function updateBar() {
     // 현재 보기 모드에 따라 선택된 파일 확인
-    const selectedFiles = viewMode === 'grid'
-        ? document.querySelectorAll('.file-card.selected')
-        : document.querySelectorAll('.file-list-item.selected');
+    let selectedFiles;
+    if (viewMode === 'grid') {
+        selectedFiles = document.querySelectorAll('.file-card.selected');
+    } else if (viewMode === 'small-grid') {
+        selectedFiles = document.querySelectorAll('.file-card-small.selected');
+    } else {
+        selectedFiles = document.querySelectorAll('.file-list-item.selected');
+    }
     const count = selectedFiles.length;
     const actionBar = document.getElementById('actionBar');
     const executeBtn = document.getElementById('executeBtn');
@@ -1131,7 +1237,7 @@ function updateBar() {
 
             const hasEncrypted = Array.from(selectedFiles).some(item => {
                 let fileName;
-                if (item.classList.contains('file-card')) {
+                if (item.classList.contains('file-card') || item.classList.contains('file-card-small')) {
                     fileName = item.querySelector('div:last-child').innerText.toLowerCase();
                 } else {
                     fileName = item.querySelector('.file-name span:last-child').innerText.toLowerCase();
@@ -1154,9 +1260,14 @@ function updateBar() {
 
 /* --- 삭제 기능 --- */
 function deleteFiles() {
-    const selectedFiles = viewMode === 'grid'
-        ? document.querySelectorAll('.file-card.selected')
-        : document.querySelectorAll('.file-list-item.selected');
+    let selectedFiles;
+    if (viewMode === 'grid') {
+        selectedFiles = document.querySelectorAll('.file-card.selected');
+    } else if (viewMode === 'small-grid') {
+        selectedFiles = document.querySelectorAll('.file-card-small.selected');
+    } else {
+        selectedFiles = document.querySelectorAll('.file-list-item.selected');
+    }
 
     if (selectedFiles.length === 0) {
         showAlertModal('알림', '삭제할 파일을 선택해주세요.');
@@ -1176,9 +1287,14 @@ function deleteFiles() {
 }
 
 async function executeDelete() {
-    const selectedFiles = viewMode === 'grid'
-        ? document.querySelectorAll('.file-card.selected')
-        : document.querySelectorAll('.file-list-item.selected');
+    let selectedFiles;
+    if (viewMode === 'grid') {
+        selectedFiles = document.querySelectorAll('.file-card.selected');
+    } else if (viewMode === 'small-grid') {
+        selectedFiles = document.querySelectorAll('.file-card-small.selected');
+    } else {
+        selectedFiles = document.querySelectorAll('.file-list-item.selected');
+    }
 
     const fileList = Array.from(selectedFiles).map(item => item.dataset.path);
 
