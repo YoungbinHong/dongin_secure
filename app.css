@@ -54,6 +54,7 @@ body.dark-theme .footer-icon:hover {
 body.dark-theme .back-btn {
     background: rgba(50, 50, 50, 0.6);
     border-color: rgba(255, 255, 255, 0.1);
+    color: #e8e8e8;
 }
 
 body.dark-theme .path-bar {
@@ -439,6 +440,7 @@ header {
 
 body.dark-theme .file-card-small {
     background: rgba(40, 40, 40, 0.6);
+    color: #e8e8e8;
 }
 
 /* --- 보기 전환 버튼 --- */
@@ -471,6 +473,7 @@ body.dark-theme .file-card-small {
 body.dark-theme .view-toggle-btn {
     background: rgba(50, 50, 50, 0.6);
     border-color: rgba(255, 255, 255, 0.1);
+    color: #e8e8e8;
 }
 
 /* --- 미리보기 토글 버튼 --- */
@@ -509,6 +512,7 @@ body.dark-theme .view-toggle-btn {
 body.dark-theme .preview-toggle-btn {
     background: rgba(50, 50, 50, 0.6);
     border-color: rgba(255, 255, 255, 0.1);
+    color: #e8e8e8;
 }
 
 body.dark-theme .preview-toggle-btn.active {
@@ -1369,6 +1373,7 @@ body.dark-theme #sidebarMenu::-webkit-scrollbar-thumb:active {
 body.dark-theme .help-btn {
     background: rgba(50, 50, 50, 0.6);
     border-color: rgba(255, 255, 255, 0.1);
+    color: #e8e8e8;
 }
 
 /* --- 튜토리얼 오버레이 --- */
