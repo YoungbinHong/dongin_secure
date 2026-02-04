@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from typing import List
@@ -79,6 +80,10 @@ app.add_middleware(
 )
 
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
+
+UPDATES_DIR = os.path.join(os.path.dirname(__file__), "updates")
+os.makedirs(UPDATES_DIR, exist_ok=True)
+app.mount("/updates", StaticFiles(directory=UPDATES_DIR), name="updates")
 
 @app.get("/")
 async def root():

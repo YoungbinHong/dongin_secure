@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
@@ -242,8 +243,40 @@ ipcMain.handle('set-auto-start', (event, enabled) => {
     });
 });
 
+// ===== 자동 업데이트 =====
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+
+autoUpdater.on('update-available', (info) => {
+    dialog.showMessageBox({
+        type: 'info',
+        title: '업데이트 발견',
+        message: `새 버전 ${info.version}을 다운로드합니다.`
+    });
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    dialog.showMessageBox({
+        type: 'info',
+        title: '업데이트 준비 완료',
+        message: '업데이트가 다운로드되었습니다. 앱을 재시작하면 설치됩니다.',
+        buttons: ['지금 재시작', '나중에']
+    }).then((result) => {
+        if (result.response === 0) {
+            autoUpdater.quitAndInstall();
+        }
+    });
+});
+
+autoUpdater.on('error', (err) => {
+    console.error('업데이트 오류:', err);
+});
+
 // 앱 시작
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
+    autoUpdater.checkForUpdates();
+});
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit();
