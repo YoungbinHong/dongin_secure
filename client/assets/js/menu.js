@@ -1,6 +1,33 @@
+const API_BASE = 'http://192.168.0.254:8000';
+
+function getToken() {
+    return localStorage.getItem('access_token');
+}
+
+async function logEvent(action) {
+    const token = getToken();
+    if (!token) return;
+    try {
+        await fetch(`${API_BASE}/api/event`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ action })
+        });
+    } catch {}
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedTheme();
 });
+
+const _originalApplyTheme = applyTheme;
+applyTheme = function(theme) {
+    _originalApplyTheme(theme);
+    logEvent(`테마 변경: ${theme === 'dark' ? '어두운 테마' : '밝은 테마'}`);
+};
 
 function openSettings() {
     document.querySelectorAll('.alert-modal, .settings-modal').forEach(el => el.style.display = 'none');
@@ -30,8 +57,18 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-function confirmLogout() {
+async function confirmLogout() {
     closeModal();
+    const token = getToken();
+    if (token) {
+        try {
+            await fetch(`${API_BASE}/api/auth/logout`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch {}
+    }
+    localStorage.removeItem('access_token');
     const overlay = document.getElementById('logoutOverlay');
     overlay.classList.add('active');
     setTimeout(() => {
@@ -69,6 +106,8 @@ document.querySelectorAll('.program-card.card-secure, .program-card.card-pdf, .p
         const cardType = this.classList.contains('card-pdf') ? 'card-pdf' :
                         this.classList.contains('card-ai') ? 'card-ai' : 'card-secure';
         const config = transitionConfigs[cardType];
+
+        logEvent(`프로그램 선택: ${config.title}`);
 
         transitionIcon.innerHTML = config.icon;
         transitionTitle.textContent = config.title;

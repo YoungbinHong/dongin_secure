@@ -266,8 +266,17 @@ function logout() {
     showModal('logoutContent');
 }
 
-function confirmLogout() {
+async function confirmLogout() {
     closeModal();
+    const token = getToken();
+    if (token) {
+        try {
+            await fetch(`${API_BASE}/api/auth/logout`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        } catch {}
+    }
     localStorage.removeItem('access_token');
     const overlay = document.getElementById('logoutOverlay');
     overlay.classList.add('active');
