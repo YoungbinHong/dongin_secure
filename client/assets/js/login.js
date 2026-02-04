@@ -12,10 +12,22 @@ function checkLogin() {
     const password = document.getElementById('password').value;
     const btn = document.querySelector('button');
 
-    if (email === 'user' && password === '1234') {
+    const accounts = JSON.parse(localStorage.getItem('portal-accounts') || '[]');
+    let account = accounts.find(a => a.email === email && a.password === password);
+
+    if (!account && email === 'user' && password === '1234') {
+        account = { type: 'user' };
+    }
+    if (!account && email === 'admin' && password === '1234') {
+        account = { type: 'admin' };
+    }
+
+    if (account) {
         const errorBox = document.getElementById('errorBox');
         errorBox.classList.remove('show');
         btn.classList.add('loading');
+
+        const targetPage = account.type === 'admin' ? 'management.html' : 'menu.html';
 
         setTimeout(() => {
             btn.classList.remove('loading');
@@ -26,7 +38,7 @@ function checkLogin() {
                 document.querySelector('.login-wrapper').classList.add('success');
 
                 setTimeout(() => {
-                    window.location.href = 'menu.html';
+                    window.location.href = targetPage;
                 }, 1000);
             }, 1000);
         }, 800);
