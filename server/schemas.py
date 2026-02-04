@@ -41,3 +41,6 @@ class TokenData(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+class EventLog(BaseModel):
+    action: str

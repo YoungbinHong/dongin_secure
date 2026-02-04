@@ -7,12 +7,22 @@ from sqlalchemy.orm import Session
 from typing import List
 import uvicorn
 import os
+import sys
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    stream=sys.stdout
+)
+logger = logging.getLogger("portal")
 
 from database import engine, get_db, Base
 from models import User
 from schemas import (
     UserCreate, UserUpdate, UserResponse,
-    Token, PasswordChange
+    Token, PasswordChange, EventLog
 )
 from auth import (
     get_password_hash, verify_password, create_access_token,
@@ -82,10 +92,13 @@ async def health(db: Session = Depends(get_db)):
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
+        logger.info(f"{form_data.username} | 로그인 실패")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="아이디 또는 비밀번호 오류")
     if not user.is_active:
+        logger.info(f"{user.username} | 로그인 실패 (비활성화)")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="비활성화된 계정")
     access_token = create_access_token(data={"sub": user.username, "role": user.role})
+    logger.info(f"{user.username} | 로그인")
     return {"access_token": access_token, "token_type": "bearer"}
 
 @app.get("/api/users/me", response_model=UserResponse)
@@ -102,6 +115,7 @@ async def change_my_password(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="현재 비밀번호 오류")
     current_user.hashed_password = get_password_hash(password_data.new_password)
     db.commit()
+    logger.info(f"{current_user.username} | 비밀번호 변경")
     return {"message": "비밀번호 변경 완료"}
 
 @app.get("/api/users", response_model=List[UserResponse])
@@ -142,6 +156,7 @@ async def create_user(
     db.add(user)
     db.commit()
     db.refresh(user)
+    logger.info(f"{current_user.username} | 사용자 생성: {user.username}")
     return user
 
 @app.put("/api/users/{user_id}", response_model=UserResponse)
@@ -159,6 +174,7 @@ async def update_user(
         setattr(user, key, value)
     db.commit()
     db.refresh(user)
+    logger.info(f"{current_user.username} | 사용자 수정: {user.username}")
     return user
 
 @app.put("/api/users/{user_id}/password")
@@ -173,6 +189,7 @@ async def reset_user_password(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자 없음")
     user.hashed_password = get_password_hash(new_password)
     db.commit()
+    logger.info(f"{current_user.username} | 비밀번호 초기화: {user.username}")
     return {"message": "비밀번호 초기화 완료"}
 
 @app.delete("/api/users/{user_id}")
@@ -186,9 +203,24 @@ async def delete_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자 없음")
     if user.id == current_user.id:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="자기 자신 삭제 불가")
+    username = user.username
     db.delete(user)
     db.commit()
+    logger.info(f"{current_user.username} | 사용자 삭제: {username}")
     return {"message": "삭제 완료"}
+
+@app.post("/api/auth/logout")
+async def logout(current_user: User = Depends(get_current_user)):
+    logger.info(f"{current_user.username} | 로그아웃")
+    return {"message": "로그아웃"}
+
+@app.post("/api/event")
+async def log_event(
+    event: EventLog,
+    current_user: User = Depends(get_current_user)
+):
+    logger.info(f"{current_user.username} | {event.action}")
+    return {"message": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run(
