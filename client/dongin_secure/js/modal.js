@@ -46,3 +46,12 @@ function closeModal() {
     }
     document.getElementById('modalOverlay').style.display = 'none';
 }
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('modalOverlay');
+        if (modal && modal.style.display === 'flex') {
+            closeModal();
+        }
+    }
+});

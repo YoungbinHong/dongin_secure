@@ -21,6 +21,15 @@ function closeModal() {
     document.querySelectorAll('.alert-modal, .settings-modal').forEach(el => el.style.display = 'none');
 }
 
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('modalOverlay');
+        if (modal && modal.style.display === 'flex') {
+            closeModal();
+        }
+    }
+});
+
 function confirmLogout() {
     closeModal();
     const overlay = document.getElementById('logoutOverlay');
@@ -40,10 +49,15 @@ const transitionConfigs = {
         icon: '<svg viewBox="0 0 24 24"><path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/></svg>',
         title: 'DONGIN PDF EDITOR',
         gradient: 'linear-gradient(135deg, #ff7675 0%, #d63031 100%)'
+    },
+    'card-ai': {
+        icon: '<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>',
+        title: 'DONGIN AI AGENT',
+        gradient: 'linear-gradient(135deg, #00b894 0%, #00a085 100%)'
     }
 };
 
-document.querySelectorAll('.program-card.card-secure, .program-card.card-pdf').forEach(card => {
+document.querySelectorAll('.program-card.card-secure, .program-card.card-pdf, .program-card.card-ai').forEach(card => {
     card.addEventListener('click', function(e) {
         e.preventDefault();
         const href = this.getAttribute('href');
@@ -52,7 +66,8 @@ document.querySelectorAll('.program-card.card-secure, .program-card.card-pdf').f
         const transitionIcon = document.getElementById('transitionIcon');
         const transitionTitle = document.getElementById('transitionTitle');
 
-        const cardType = this.classList.contains('card-pdf') ? 'card-pdf' : 'card-secure';
+        const cardType = this.classList.contains('card-pdf') ? 'card-pdf' :
+                        this.classList.contains('card-ai') ? 'card-ai' : 'card-secure';
         const config = transitionConfigs[cardType];
 
         transitionIcon.innerHTML = config.icon;

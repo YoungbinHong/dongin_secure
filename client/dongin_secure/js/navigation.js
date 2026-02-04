@@ -34,7 +34,14 @@ function goBack() {
     updateSidebarActive();
 }
 
-function goToMenu() {
+function showHomeConfirm() {
+    document.querySelectorAll('.alert-modal, .settings-modal').forEach(m => m.style.display = 'none');
+    document.getElementById('homeContent').style.display = 'block';
+    document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function confirmGoToMenu() {
+    closeModal();
     const overlay = document.getElementById('logoutOverlay');
     overlay.classList.add('active');
     setTimeout(() => {

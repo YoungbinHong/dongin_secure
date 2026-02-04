@@ -129,6 +129,19 @@ body {
     color: #d63031;
 }
 
+.card-ai .card-icon {
+    background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+}
+
+.card-ai .card-subtitle {
+    color: #00b894;
+}
+
+.card-ai .card-badge {
+    background: rgba(0, 184, 148, 0.15);
+    color: #00a085;
+}
+
 .card-coming .card-icon {
     background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 100%);
 }

@@ -321,6 +321,15 @@ function closeModal() {
     document.querySelectorAll('.alert-modal, .settings-modal').forEach(el => el.style.display = 'none');
 }
 
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('modalOverlay');
+        if (modal && modal.style.display === 'flex') {
+            closeModal();
+        }
+    }
+});
+
 function logout() {
     document.querySelectorAll('.alert-modal, .settings-modal').forEach(m => m.style.display = 'none');
     document.getElementById('logoutContent').style.display = 'block';
@@ -336,7 +345,14 @@ function confirmLogout() {
     }, 600);
 }
 
-function goToMenu() {
+function showHomeConfirm() {
+    document.querySelectorAll('.alert-modal, .settings-modal').forEach(m => m.style.display = 'none');
+    document.getElementById('homeContent').style.display = 'block';
+    document.getElementById('modalOverlay').style.display = 'flex';
+}
+
+function confirmGoToMenu() {
+    closeModal();
     const overlay = document.getElementById('logoutOverlay');
     overlay.classList.add('active');
     setTimeout(() => {
