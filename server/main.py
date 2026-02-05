@@ -85,6 +85,43 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 UPDATES_DIR = os.path.join(os.path.dirname(__file__), "updates")
 os.makedirs(UPDATES_DIR, exist_ok=True)
 
+def _parse_latest_yml():
+    p = os.path.join(UPDATES_DIR, "latest.yml")
+    if not os.path.isfile(p):
+        return None, None
+    version, path_val = None, None
+    with open(p, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("version:"):
+                version = line.split(":", 1)[1].strip().strip("'\"").strip()
+            elif line.startswith("path:"):
+                path_val = line.split(":", 1)[1].strip().strip("'\"").strip()
+    return version, path_val
+
+def _version_geq(client_ver, server_ver):
+    def parse(v):
+        parts = (v or "0").replace("-", ".").split(".")
+        return [int(x) if x.isdigit() else 0 for x in parts[:3]]
+    c, s = parse(client_ver), parse(server_ver)
+    for i in range(max(len(c), len(s))):
+        a, b = c[i] if i < len(c) else 0, s[i] if i < len(s) else 0
+        if a > b:
+            return True
+        if a < b:
+            return False
+    return True
+
+@app.get("/api/update/check")
+async def update_check(version: str = "0.0.0"):
+    server_version, path_val = _parse_latest_yml()
+    if not server_version or not path_val:
+        return {"updateAvailable": False, "version": version}
+    update_available = not _version_geq(version, server_version)
+    out = {"updateAvailable": update_available, "version": server_version}
+    if update_available:
+        out["downloadUrl"] = "/updates/" + path_val
+    return out
+
 @app.get("/updates/latest.yml")
 async def serve_latest_yml():
     path = os.path.join(UPDATES_DIR, "latest.yml")

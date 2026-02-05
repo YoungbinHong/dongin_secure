@@ -1,56 +1,81 @@
+const API_BASE = 'http://localhost:8000';
+const REQUEST_TIMEOUT_MS = 10000;
 const statusText = document.getElementById('statusText');
 const progressBar = document.getElementById('progressBar');
 const progressText = document.getElementById('progressText');
 
-window.api.onUpdateStatus((event, data) => {
-    switch (data.status) {
-        case 'checking':
-            statusText.textContent = '업데이트 확인중...';
-            break;
-        case 'available':
-            statusText.textContent = `새 버전 ${data.version} 다운로드중...`;
-            progressBar.classList.add('determinate');
-            break;
-        case 'not-available':
-            statusText.textContent = '최신 버전입니다';
-            progressBar.style.width = '100%';
-            progressBar.classList.add('determinate');
-            document.getElementById('latestModal').classList.add('show');
-            break;
-        case 'downloading':
-            progressBar.style.width = data.percent + '%';
-            progressText.textContent = `${Math.round(data.percent)}% (${formatBytes(data.transferred)} / ${formatBytes(data.total)})`;
-            break;
-        case 'downloaded':
-            statusText.textContent = '업데이트 설치중...';
-            progressBar.style.width = '100%';
-            progressText.textContent = '잠시 후 재시작됩니다';
-            break;
-        case 'error':
-            statusText.textContent = '업데이트 확인 실패';
-            progressText.textContent = '로그인 화면으로 이동합니다...';
-            progressBar.style.width = '100%';
-            progressBar.classList.add('determinate');
-            setTimeout(() => {
-                document.querySelector('.wave-wrapper').classList.add('success');
-                document.querySelector('.update-wrapper').classList.add('success');
-                setTimeout(() => {
-                    window.api.goToLogin();
-                }, 800);
-            }, 1500);
-            break;
-    }
+function showTimeoutModal() {
+    document.getElementById('timeoutModal').classList.add('show');
+}
+
+document.getElementById('timeoutModalBtn').addEventListener('click', () => {
+    document.getElementById('timeoutModal').classList.remove('show');
+    window.api.quitApp();
 });
+
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function checkUpdate() {
+    const startTime = Date.now();
+
+    statusText.textContent = '업데이트 확인중...';
+    progressBar.classList.remove('determinate');
+    progressBar.style.width = '';
+    progressText.textContent = '';
+
+    let version = '0.0.0';
+    try {
+        version = await window.api.getAppVersion();
+    } catch (_) {}
+
+    const timeoutId = setTimeout(() => {
+        statusText.textContent = '서버 응답 타임아웃';
+        showTimeoutModal();
+    }, REQUEST_TIMEOUT_MS);
+
+    try {
+        const data = await window.api.checkUpdate(API_BASE, version);
+        clearTimeout(timeoutId);
+
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 2500) {
+            await delay(2500 - elapsed);
+        }
+
+        if (!data.updateAvailable) {
+            document.querySelector('.update-wrapper').classList.add('success');
+            await delay(800);
+            document.getElementById('latestModal').classList.add('show');
+            return;
+        }
+
+        if (data.updateAvailable && data.downloadUrl) {
+            statusText.textContent = `새 버전 ${data.version || ''} 다운로드중...`;
+            progressBar.classList.add('determinate');
+            progressBar.style.width = '100%';
+            progressText.textContent = '설치 파일 받는 중...';
+            await window.api.downloadAndInstall(API_BASE + data.downloadUrl);
+            return;
+        }
+    } catch (err) {
+        clearTimeout(timeoutId);
+        if (err.message === 'timeout') {
+            showTimeoutModal();
+            return;
+        }
+    }
+
+    statusText.textContent = '업데이트 확인 실패';
+    progressBar.classList.add('determinate');
+    progressBar.style.width = '100%';
+    setTimeout(() => window.api.goToLogin(), 2000);
+}
 
 document.getElementById('latestModalBtn').addEventListener('click', () => {
     document.getElementById('latestModal').classList.remove('show');
     window.api.goToLogin();
 });
 
-function formatBytes(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
+checkUpdate();

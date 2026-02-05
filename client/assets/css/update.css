@@ -83,19 +83,24 @@ h1 {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 4px;
     overflow: hidden;
+    position: relative;
 }
 
 .progress-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
     height: 100%;
-    width: 0%;
+    width: 56px;
     background: linear-gradient(90deg, #a29bfe, #74b9ff);
     border-radius: 4px;
-    transition: width 0.3s ease;
-    animation: progress-pulse 1.5s ease-in-out infinite;
+    animation: progress-bar-move 2s ease-in-out infinite;
 }
 
 .progress-bar.determinate {
     animation: none;
+    width: 100%;
+    position: relative;
 }
 
 .progress-text {
@@ -134,15 +139,22 @@ h1 {
     }
 }
 
-@keyframes progress-pulse {
+@keyframes progress-bar-move {
     0% {
-        width: 0%;
+        left: 0;
+        opacity: 0;
     }
-    50% {
-        width: 70%;
+    10% {
+        left: 0;
+        opacity: 1;
     }
-    100% {
-        width: 0%;
+    70% {
+        left: calc(100% - 56px);
+        opacity: 1;
+    }
+    85%, 100% {
+        left: calc(100% - 56px);
+        opacity: 0;
     }
 }
 

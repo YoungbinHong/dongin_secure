@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
-const { autoUpdater } = require('electron-updater');
 const path = require('path');
+const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const os = require('os');
@@ -40,6 +41,10 @@ ipcMain.handle('go-to-login', () => {
     if (mainWindow) {
         mainWindow.loadFile('login.html');
     }
+});
+
+ipcMain.handle('quit-app', () => {
+    app.quit();
 });
 
 // ===== IPC 핸들러: 경로 관련 =====
@@ -251,104 +256,61 @@ ipcMain.handle('set-auto-start', (event, enabled) => {
     });
 });
 
-// ===== 자동 업데이트 =====
-const UPDATE_CHECK_TIMEOUT_MS = 8000;
-let updateCheckTimeoutId = null;
+ipcMain.handle('get-app-version', () => app.getVersion());
 
-function clearUpdateCheckTimeout() {
-    if (updateCheckTimeoutId) {
-        clearTimeout(updateCheckTimeoutId);
-        updateCheckTimeoutId = null;
-    }
-}
-
-function startUpdateCheckTimeout() {
-    clearUpdateCheckTimeout();
-    updateCheckTimeoutId = setTimeout(() => {
-        updateCheckTimeoutId = null;
-        if (mainWindow) {
-            mainWindow.webContents.send('update-status', { status: 'not-available' });
-        }
-    }, UPDATE_CHECK_TIMEOUT_MS);
-}
-
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = false;
-autoUpdater.forceDevUpdateConfig = true;
-
-autoUpdater.on('checking-for-update', () => {
-    if (mainWindow) {
-        mainWindow.webContents.send('update-status', { status: 'checking' });
-    }
-});
-
-autoUpdater.on('update-available', (info) => {
-    clearUpdateCheckTimeout();
-    if (mainWindow) {
-        mainWindow.webContents.send('update-status', { status: 'available', version: info.version });
-    }
-});
-
-autoUpdater.on('update-not-available', () => {
-    clearUpdateCheckTimeout();
-    if (mainWindow) {
-        mainWindow.webContents.send('update-status', { status: 'not-available' });
-    }
-});
-
-autoUpdater.on('download-progress', (progress) => {
-    if (mainWindow) {
-        mainWindow.webContents.send('update-status', {
-            status: 'downloading',
-            percent: progress.percent,
-            transferred: progress.transferred,
-            total: progress.total
+ipcMain.handle('check-update', (event, baseUrl, version) => {
+    const url = (baseUrl || '').replace(/\/$/, '') + '/api/update/check?version=' + encodeURIComponent(version || '0.0.0');
+    const protocol = url.startsWith('https') ? https : http;
+    return new Promise((resolve, reject) => {
+        const req = protocol.get(url, { timeout: 12000 }, (res) => {
+            let data = '';
+            res.on('data', (ch) => { data += ch; });
+            res.on('end', () => {
+                try {
+                    resolve(JSON.parse(data));
+                } catch (e) {
+                    reject(e);
+                }
+            });
         });
-    }
+        req.on('error', reject);
+        req.setTimeout(10000, () => {
+            req.destroy();
+            reject(new Error('timeout'));
+        });
+    });
 });
 
-autoUpdater.on('update-downloaded', () => {
-    if (mainWindow) {
-        mainWindow.webContents.send('update-status', { status: 'downloaded' });
-    }
-    setTimeout(() => {
-        autoUpdater.quitAndInstall();
-    }, 1500);
-});
-
-autoUpdater.on('error', (err) => {
-    clearUpdateCheckTimeout();
-    console.error('업데이트 오류:', err);
-    if (mainWindow) {
-        mainWindow.webContents.send('update-status', { status: 'error', message: err.message });
-    }
+ipcMain.handle('download-and-install', async (event, fullUrl) => {
+    const url = new URL(fullUrl);
+    const protocol = url.protocol === 'https:' ? https : http;
+    const destPath = path.join(os.tmpdir(), path.basename(url.pathname) || 'DONGIN_PORTAL_Setup.exe');
+    return new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(destPath);
+        protocol.get(fullUrl, { timeout: 120000 }, (res) => {
+            if (res.statusCode === 301 || res.statusCode === 302) {
+                file.close();
+                fs.unlink(destPath, () => {});
+                return reject(new Error('Redirect'));
+            }
+            res.pipe(file);
+            file.on('finish', () => {
+                file.close();
+                shell.openPath(destPath);
+                setTimeout(() => app.quit(), 500);
+                resolve({ success: true });
+            });
+        }).on('error', (err) => {
+            file.close();
+            fs.unlink(destPath, () => {});
+            reject(err);
+        });
+    });
 });
 
 // 앱 시작
 app.whenReady().then(() => {
     createWindow();
-    mainWindow.webContents.on('did-finish-load', () => {
-        if (mainWindow.webContents.getURL().includes('update.html')) {
-            startUpdateCheckTimeout();
-            autoUpdater.checkForUpdates()
-                .then(() => {
-                    setTimeout(() => {
-                        if (updateCheckTimeoutId != null) {
-                            clearUpdateCheckTimeout();
-                            if (mainWindow) {
-                                mainWindow.webContents.send('update-status', { status: 'not-available' });
-                            }
-                        }
-                    }, 300);
-                })
-                .catch((err) => {
-                    clearUpdateCheckTimeout();
-                    if (mainWindow) {
-                        mainWindow.webContents.send('update-status', { status: 'error', message: err && err.message ? err.message : 'Unknown error' });
-                    }
-                });
-        }
-    });
 });
 
 app.on('window-all-closed', () => {

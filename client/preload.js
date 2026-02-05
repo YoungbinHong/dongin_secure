@@ -1,10 +1,11 @@
 const { contextBridge, ipcRenderer } = require('electron');
-const path = require('path');
 
 contextBridge.exposeInMainWorld('api', {
-    // ===== 업데이트 =====
-    onUpdateStatus: (callback) => ipcRenderer.on('update-status', callback),
     goToLogin: () => ipcRenderer.invoke('go-to-login'),
+    quitApp: () => ipcRenderer.invoke('quit-app'),
+    getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+    checkUpdate: (baseUrl, version) => ipcRenderer.invoke('check-update', baseUrl, version),
+    downloadAndInstall: (fullUrl) => ipcRenderer.invoke('download-and-install', fullUrl),
 
     // ===== 경로 관련 =====
     getHomePath: () => ipcRenderer.invoke('get-home-path'),
