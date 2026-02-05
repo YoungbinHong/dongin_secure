@@ -2,6 +2,11 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 // 렌더러에 노출할 안전한 API만 정의
 contextBridge.exposeInMainWorld('api', {
+    // ===== 업데이트 =====
+    onUpdateStatus: (callback) => ipcRenderer.on('update-status', callback),
+    goToLogin: () => ipcRenderer.invoke('go-to-login'),
+
+
     // ===== 경로 관련 =====
     getHomePath: () => ipcRenderer.invoke('get-home-path'),
     getPlatform: () => ipcRenderer.invoke('get-platform'),
