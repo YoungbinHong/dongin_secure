@@ -252,7 +252,7 @@ ipcMain.handle('set-auto-start', (event, enabled) => {
 });
 
 // ===== 자동 업데이트 =====
-const UPDATE_CHECK_TIMEOUT_MS = 15000;
+const UPDATE_CHECK_TIMEOUT_MS = 8000;
 let updateCheckTimeoutId = null;
 
 function clearUpdateCheckTimeout() {
@@ -330,7 +330,23 @@ app.whenReady().then(() => {
     mainWindow.webContents.on('did-finish-load', () => {
         if (mainWindow.webContents.getURL().includes('update.html')) {
             startUpdateCheckTimeout();
-            autoUpdater.checkForUpdates();
+            autoUpdater.checkForUpdates()
+                .then(() => {
+                    setTimeout(() => {
+                        if (updateCheckTimeoutId != null) {
+                            clearUpdateCheckTimeout();
+                            if (mainWindow) {
+                                mainWindow.webContents.send('update-status', { status: 'not-available' });
+                            }
+                        }
+                    }, 300);
+                })
+                .catch((err) => {
+                    clearUpdateCheckTimeout();
+                    if (mainWindow) {
+                        mainWindow.webContents.send('update-status', { status: 'error', message: err && err.message ? err.message : 'Unknown error' });
+                    }
+                });
         }
     });
 });

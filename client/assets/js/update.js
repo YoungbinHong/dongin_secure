@@ -15,13 +15,7 @@ window.api.onUpdateStatus((event, data) => {
             statusText.textContent = '최신 버전입니다';
             progressBar.style.width = '100%';
             progressBar.classList.add('determinate');
-            setTimeout(() => {
-                document.querySelector('.wave-wrapper').classList.add('success');
-                document.querySelector('.update-wrapper').classList.add('success');
-                setTimeout(() => {
-                    window.api.goToLogin();
-                }, 800);
-            }, 500);
+            document.getElementById('latestModal').classList.add('show');
             break;
         case 'downloading':
             progressBar.style.width = data.percent + '%';
@@ -46,6 +40,11 @@ window.api.onUpdateStatus((event, data) => {
             }, 1500);
             break;
     }
+});
+
+document.getElementById('latestModalBtn').addEventListener('click', () => {
+    document.getElementById('latestModal').classList.remove('show');
+    window.api.goToLogin();
 });
 
 function formatBytes(bytes) {
