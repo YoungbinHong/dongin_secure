@@ -259,3 +259,24 @@ h1 {
         transform: scale(1);
     }
 }
+
+.modal-overlay.hide {
+    animation: modal-disappear 0.7s ease forwards;
+}
+
+.modal-overlay.hide .modal-card {
+    animation: modal-card-disappear 0.7s ease forwards;
+}
+
+@keyframes modal-disappear {
+    to {
+        background: rgba(0, 0, 0, 0);
+    }
+}
+
+@keyframes modal-card-disappear {
+    to {
+        opacity: 0;
+        transform: scale(1.05);
+    }
+}

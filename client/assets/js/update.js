@@ -74,8 +74,11 @@ async function checkUpdate() {
 }
 
 document.getElementById('latestModalBtn').addEventListener('click', () => {
-    document.getElementById('latestModal').classList.remove('show');
-    window.api.goToLogin();
+    const modal = document.getElementById('latestModal');
+    modal.classList.add('hide');
+    modal.addEventListener('animationend', () => {
+        window.api.goToLogin();
+    }, { once: true });
 });
 
 checkUpdate();
