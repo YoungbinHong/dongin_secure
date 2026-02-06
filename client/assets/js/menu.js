@@ -115,9 +115,12 @@ const transitionConfigs = {
     }
 };
 
+let lastDragDistance = 0;
+
 document.querySelectorAll('.program-card.card-secure, .program-card.card-pdf, .program-card.card-ai, .program-card.card-remote, .program-card.card-mail, .program-card.card-community').forEach(card => {
     card.addEventListener('click', function(e) {
         e.preventDefault();
+        if (lastDragDistance > 5) return;
         const href = this.getAttribute('href');
         const transition = document.getElementById('pageTransition');
         const loaderBar = document.getElementById('loaderBar');
@@ -148,3 +151,214 @@ document.querySelectorAll('.program-card.card-secure, .program-card.card-pdf, .p
         }, 1600);
     });
 });
+
+const cardContainer = document.querySelector('.card-container');
+const originalCards = Array.from(document.querySelectorAll('.program-card'));
+const cardWidth = 280;
+const cardGap = 24;
+const cardTotal = cardWidth + cardGap;
+const cardCount = originalCards.length;
+
+let currentOffset = 0;
+let scrollVelocity = 0;
+let isAnimating = false;
+let isDragging = false;
+let startX = 0;
+let dragStartOffset = 0;
+let lastDragX = 0;
+let dragVelocity = 0;
+
+function getContainerWidth() {
+    return cardContainer.getBoundingClientRect().width;
+}
+
+function updateCarousel() {
+    const containerWidth = getContainerWidth();
+    const centerX = containerWidth / 2;
+    const visibleHalf = cardTotal * 2;
+
+    originalCards.forEach((card, index) => {
+        let offsetIndex = index - Math.floor(cardCount / 2);
+        let basePos = centerX + offsetIndex * cardTotal - cardWidth / 2;
+        let pos = basePos - currentOffset;
+
+        const totalWidth = cardCount * cardTotal;
+        while (pos < centerX - visibleHalf - cardWidth) pos += totalWidth;
+        while (pos > centerX + visibleHalf) pos -= totalWidth;
+
+        card.style.left = pos + 'px';
+
+        const cardCenter = pos + cardWidth / 2;
+        const distance = Math.abs(centerX - cardCenter);
+        const isCenter = distance < cardTotal * 1.5;
+        const isVisible = distance < cardTotal * 1.5 + cardWidth * 0.7;
+
+        card.dataset.isCenter = isCenter;
+
+        if (!isVisible) {
+            card.style.visibility = 'hidden';
+        } else if (isCenter) {
+            card.style.visibility = 'visible';
+            card.style.transform = 'scale(1)';
+            card.style.opacity = '1';
+            card.style.filter = 'blur(0px)';
+        } else {
+            card.style.visibility = 'visible';
+            card.style.transform = 'scale(0.85)';
+            card.style.opacity = '0.5';
+            card.style.filter = 'blur(3px)';
+        }
+    });
+}
+
+function snapToCard() {
+    if (!isSnapping) return;
+
+    const snapIndex = Math.round(currentOffset / cardTotal);
+    const targetOffset = snapIndex * cardTotal;
+    const diff = targetOffset - currentOffset;
+
+    if (Math.abs(diff) < 0.5) {
+        currentOffset = targetOffset;
+        updateCarousel();
+        isSnapping = false;
+        return;
+    }
+
+    currentOffset += diff * 0.15;
+    updateCarousel();
+    requestAnimationFrame(snapToCard);
+}
+
+function animateScroll() {
+    if (Math.abs(scrollVelocity) < 0.5) {
+        isAnimating = false;
+        scrollVelocity = 0;
+        isSnapping = true;
+        snapToCard();
+        return;
+    }
+
+    currentOffset += scrollVelocity;
+    scrollVelocity *= 0.92;
+    updateCarousel();
+
+    requestAnimationFrame(animateScroll);
+}
+
+let wheelTimeout = null;
+let wheelAccum = 0;
+let isSnapping = false;
+
+function handleWheel(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const delta = e.deltaY || e.deltaX;
+    wheelAccum += delta;
+
+    if (wheelTimeout) clearTimeout(wheelTimeout);
+
+    wheelTimeout = setTimeout(() => {
+        const direction = wheelAccum > 0 ? 1 : -1;
+        wheelAccum = 0;
+        isSnapping = false;
+        scrollVelocity = direction * 25;
+        isAnimating = true;
+        requestAnimationFrame(animateScroll);
+    }, 50);
+}
+
+cardContainer.addEventListener('wheel', handleWheel, { passive: false });
+
+let dragDistance = 0;
+
+cardContainer.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragDistance = 0;
+    startX = e.pageX;
+    dragStartOffset = currentOffset;
+    lastDragX = e.pageX;
+    dragVelocity = 0;
+    scrollVelocity = 0;
+    isAnimating = false;
+    isSnapping = false;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+
+    const x = e.pageX;
+    dragDistance += Math.abs(x - lastDragX);
+
+    if (dragDistance > 5) {
+        cardContainer.classList.add('dragging');
+        e.preventDefault();
+    }
+
+    const walk = startX - x;
+    currentOffset = dragStartOffset + walk;
+
+    dragVelocity = (lastDragX - x) * 0.3;
+    lastDragX = x;
+
+    updateCarousel();
+});
+
+document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    lastDragDistance = dragDistance;
+    const wasDragging = dragDistance > 5;
+    isDragging = false;
+    cardContainer.classList.remove('dragging');
+
+    if (wasDragging) {
+        if (Math.abs(dragVelocity) > 1) {
+            scrollVelocity = dragVelocity;
+            isAnimating = true;
+            requestAnimationFrame(animateScroll);
+        } else {
+            isSnapping = true;
+            snapToCard();
+        }
+    }
+});
+
+originalCards.forEach(card => {
+    card.style.position = 'absolute';
+    card.style.top = '20px';
+    card.setAttribute('draggable', 'false');
+
+    card.addEventListener('dragstart', (e) => e.preventDefault());
+
+    card.addEventListener('mouseenter', () => {
+        if (!isDragging && card.dataset.isCenter === 'true') {
+            card.style.transform = 'scale(1) translateY(-8px)';
+        }
+    });
+
+    card.addEventListener('mouseleave', () => {
+        if (!isDragging && card.dataset.isCenter === 'true') {
+            card.style.transform = 'scale(1)';
+        }
+    });
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        isSnapping = false;
+        scrollVelocity = -25;
+        isAnimating = true;
+        requestAnimationFrame(animateScroll);
+    } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        isSnapping = false;
+        scrollVelocity = 25;
+        isAnimating = true;
+        requestAnimationFrame(animateScroll);
+    }
+});
+
+updateCarousel();
+window.addEventListener('resize', updateCarousel);

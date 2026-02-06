@@ -27,11 +27,19 @@ body {
 }
 
 .card-container {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 1200px;
+    position: relative;
+    width: 100vw;
+    height: 360px;
+    overflow: hidden;
+    cursor: grab;
+}
+
+.card-container.dragging {
+    cursor: grabbing;
+}
+
+.card-container::-webkit-scrollbar {
+    display: none;
 }
 
 .program-card {
@@ -48,9 +56,28 @@ body {
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                box-shadow 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+                opacity 0.3s ease,
+                filter 0.3s ease;
     text-decoration: none;
     color: inherit;
+    flex-shrink: 0;
+    will-change: transform, opacity, filter;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+}
+
+.program-card * {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+.card-container.dragging .program-card {
+    pointer-events: none;
 }
 
 .program-card:hover {
@@ -79,10 +106,12 @@ body {
 }
 
 .card-title {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
     color: #2d3436;
     margin-bottom: 8px;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .card-subtitle {
